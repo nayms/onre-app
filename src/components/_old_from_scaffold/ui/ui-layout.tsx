@@ -1,13 +1,13 @@
-import { ReactNode, Suspense, useEffect, useRef } from 'react'
-import toast, { Toaster } from 'react-hot-toast'
-import { Link, useLocation } from 'react-router-dom'
+import { ReactNode, Suspense, useEffect, useRef } from 'react';
+import toast, { Toaster } from 'react-hot-toast';
+import { Link, useLocation } from 'react-router';
 
-import { AccountChecker } from '../account/account-ui'
-import { ClusterChecker, ClusterUiSelect, ExplorerLink } from '../cluster/cluster-ui'
-import { WalletButton } from '../solana/solana-provider'
+import { AccountChecker } from '../account/account-ui';
+import { ClusterChecker, ClusterUiSelect, ExplorerLink } from '../cluster/cluster-ui';
+import { WalletButton } from '../solana/solana-provider';
 
 export function UiLayout({ children, links }: { children: ReactNode; links: { label: string; path: string }[] }) {
-  const pathname = useLocation().pathname
+  const pathname = useLocation().pathname;
 
   return (
     <div className="h-full flex flex-col">
@@ -62,7 +62,7 @@ export function UiLayout({ children, links }: { children: ReactNode; links: { la
         </aside>
       </footer>
     </div>
-  )
+  );
 }
 
 export function AppModal({
@@ -74,24 +74,24 @@ export function AppModal({
   submitDisabled,
   submitLabel,
 }: {
-  children: ReactNode
-  title: string
-  hide: () => void
-  show: boolean
-  submit?: () => void
-  submitDisabled?: boolean
-  submitLabel?: string
+  children: ReactNode;
+  title: string;
+  hide: () => void;
+  show: boolean;
+  submit?: () => void;
+  submitDisabled?: boolean;
+  submitLabel?: string;
 }) {
-  const dialogRef = useRef<HTMLDialogElement | null>(null)
+  const dialogRef = useRef<HTMLDialogElement | null>(null);
 
   useEffect(() => {
-    if (!dialogRef.current) return
+    if (!dialogRef.current) return;
     if (show) {
-      dialogRef.current.showModal()
+      dialogRef.current.showModal();
     } else {
-      dialogRef.current.close()
+      dialogRef.current.close();
     }
-  }, [show, dialogRef])
+  }, [show, dialogRef]);
 
   return (
     <dialog className="modal" ref={dialogRef}>
@@ -112,7 +112,7 @@ export function AppModal({
         </div>
       </div>
     </dialog>
-  )
+  );
 }
 
 export function AppHero({
@@ -120,9 +120,9 @@ export function AppHero({
   title,
   subtitle,
 }: {
-  children?: ReactNode
-  title: ReactNode
-  subtitle: ReactNode
+  children?: ReactNode;
+  title: ReactNode;
+  subtitle: ReactNode;
 }) {
   return (
     <div className="hero py-[64px]">
@@ -134,14 +134,14 @@ export function AppHero({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export function ellipsify(str = '', len = 4) {
   if (str.length > 30) {
-    return str.substring(0, len) + '..' + str.substring(str.length - len, str.length)
+    return str.substring(0, len) + '..' + str.substring(str.length - len, str.length);
   }
-  return str
+  return str;
 }
 
 export function useTransactionToast() {
@@ -151,6 +151,6 @@ export function useTransactionToast() {
         <div className="text-lg">Transaction sent</div>
         <ExplorerLink path={`tx/${signature}`} label={'View Transaction'} className="btn btn-xs btn-primary" />
       </div>,
-    )
-  }
+    );
+  };
 }
