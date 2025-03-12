@@ -1,0 +1,245 @@
+{
+  "address": "coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF",
+  "metadata": {
+    "name": "offer_marketplace",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "make_offer",
+      "discriminator": [
+        214,
+        98,
+        97,
+        35,
+        59,
+        12,
+        44,
+        178
+      ],
+      "accounts": [
+        {
+          "name": "offer",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "offer_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "offer_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  102,
+                  102,
+                  101,
+                  114,
+                  95,
+                  116,
+                  111,
+                  107,
+                  101,
+                  110
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "offer_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "boss_sell_token_account",
+          "writable": true
+        },
+        {
+          "name": "sell_token_mint"
+        },
+        {
+          "name": "boss_account"
+        },
+        {
+          "name": "boss",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "boss_account"
+          ]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "offer_id",
+          "type": "u64"
+        },
+        {
+          "name": "buy_token_mint",
+          "type": "pubkey"
+        },
+        {
+          "name": "sell_token_mint",
+          "type": "pubkey"
+        },
+        {
+          "name": "buy_token_total_amount",
+          "type": "u64"
+        },
+        {
+          "name": "sell_token_total_amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "set_boss",
+      "discriminator": [
+        144,
+        141,
+        235,
+        104,
+        167,
+        250,
+        41,
+        54
+      ],
+      "accounts": [
+        {
+          "name": "boss_account",
+          "writable": true
+        },
+        {
+          "name": "boss",
+          "signer": true,
+          "relations": [
+            "boss_account"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "new_boss",
+          "type": "pubkey"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "BossAccount",
+      "discriminator": [
+        128,
+        211,
+        135,
+        163,
+        102,
+        184,
+        152,
+        232
+      ]
+    },
+    {
+      "name": "Offer",
+      "discriminator": [
+        215,
+        88,
+        60,
+        71,
+        170,
+        162,
+        73,
+        229
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InsufficientOfferBalance",
+      "msg": "Insufficient tokens remaining in the offer."
+    }
+  ],
+  "types": [
+    {
+      "name": "BossAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "boss",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Offer",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "offer_id",
+            "type": "u64"
+          },
+          {
+            "name": "buy_token_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "sell_token_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "buy_token_total_amount",
+            "type": "u64"
+          },
+          {
+            "name": "sell_token_total_amount",
+            "type": "u64"
+          },
+          {
+            "name": "sell_token_remaining",
+            "type": "u64"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          }
+        ]
+      }
+    }
+  ]
+}

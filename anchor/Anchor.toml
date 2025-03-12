@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-onreapp = "coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF"
+onreapp = "J24jWEosQc5jgkdPm3YzNgzQ54CqNKkhzKy56XXJsLo2"
 
 [registry]
 url = "https://api.apr.dev"
