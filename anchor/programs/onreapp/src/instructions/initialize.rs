@@ -25,5 +25,6 @@ pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
     if state.boss == Pubkey::default() {
         state.boss = ctx.accounts.boss.key();
     }
+    state.bump = ctx.bumps.state;
     Ok(())
 }

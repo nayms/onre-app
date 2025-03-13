@@ -1,6 +1,10 @@
 use crate::state::{Offer, State};
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    mint,
+};
 
 #[derive(Accounts)]
 #[instruction(offer_id: u64)]
@@ -17,15 +21,24 @@ pub struct MakeOffer<'info> {
     #[account(
         init,
         payer = boss,
-        token::mint = sell_token_mint,
-        token::authority = offer,
-        seeds = [b"offer_token", offer_id.to_le_bytes().as_ref()],
-        bump,
-  )]
+        associated_token::mint = sell_token_mint,
+        associated_token::authority = state,
+    )]
     pub offer_sell_token_account: Account<'info, TokenAccount>,
+
+    #[account(
+        init,
+        payer = boss,
+        associated_token::mint = buy_token_mint,
+        associated_token::authority = state,
+    )]
+    pub offer_buy_token_account: Account<'info, TokenAccount>,
+
     #[account(mut)]
     pub boss_sell_token_account: Account<'info, TokenAccount>,
+
     pub sell_token_mint: Account<'info, Mint>,
+    pub buy_token_mint: Account<'info, Mint>,
 
     #[account(has_one = boss)]
     pub state: Account<'info, State>,
@@ -34,25 +47,22 @@ pub struct MakeOffer<'info> {
 
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize)]
-pub struct MakeOfferArgs {
-    pub offer_id: u64,
-    pub buy_token_mint: Pubkey,
-    pub sell_token_mint: Pubkey,
-    pub buy_token_total_amount: u64,
-    pub sell_token_total_amount: u64,
-}
-
-pub fn make_offer(ctx: Context<MakeOffer>, args: MakeOfferArgs) -> Result<()> {
+pub fn make_offer(
+    ctx: Context<MakeOffer>,
+    offer_id: u64,
+    buy_token_total_amount: u64,
+    sell_token_total_amount: u64,
+) -> Result<()> {
     let offer = &mut ctx.accounts.offer;
-    offer.offer_id = args.offer_id;
-    offer.buy_token_mint = args.buy_token_mint;
-    offer.sell_token_mint = args.sell_token_mint;
-    offer.buy_token_total_amount = args.buy_token_total_amount;
-    offer.sell_token_total_amount = args.sell_token_total_amount;
-    offer.sell_token_remaining = args.sell_token_total_amount;
+    offer.offer_id = offer_id;
+    offer.buy_token_mint = ctx.accounts.buy_token_mint.key();
+    offer.sell_token_mint = ctx.accounts.sell_token_mint.key();
+    offer.buy_token_total_amount = buy_token_total_amount;
+    offer.sell_token_total_amount = sell_token_total_amount;
+    offer.sell_token_remaining = sell_token_total_amount;
     offer.amount_bought = 0;
     offer.active = true;
 
@@ -64,7 +74,7 @@ pub fn make_offer(ctx: Context<MakeOffer>, args: MakeOfferArgs) -> Result<()> {
             authority: ctx.accounts.boss.to_account_info(),
         },
     );
-    token::transfer(cpi_ctx, args.sell_token_total_amount)?;
+    token::transfer(cpi_ctx, sell_token_total_amount)?;
 
     // TODO: Save the offer id/address
     Ok(())

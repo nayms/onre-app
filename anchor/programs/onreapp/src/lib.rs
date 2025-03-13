@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
-pub mod state;
 pub mod instructions;
+pub mod state;
 
 use instructions::*;
 
@@ -11,8 +11,22 @@ declare_id!("J24jWEosQc5jgkdPm3YzNgzQ54CqNKkhzKy56XXJsLo2");
 pub mod onre_app {
     use super::*;
 
-    pub fn make_offer(ctx: Context<MakeOffer>, args: MakeOfferArgs) -> Result<()> {
-        make_offer::make_offer(ctx, args)
+    pub fn make_offer(
+        ctx: Context<MakeOffer>,
+        offer_id: u64,
+        buy_token_total_amount: u64,
+        sell_token_total_amount: u64,
+    ) -> Result<()> {
+        make_offer::make_offer(
+            ctx,
+            offer_id,
+            buy_token_total_amount,
+            sell_token_total_amount,
+        )
+    }
+
+    pub fn close_offer(ctx: Context<CloseOffer>) -> Result<()> {
+        close_offer::close_offer(ctx)
     }
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {

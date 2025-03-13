@@ -32,12 +32,13 @@ impl Offer {
 #[account]
 pub struct State {
     pub boss: Pubkey,
+    pub bump: u8,
     // TODO: Add a list of offers
     // pub offer_list: Vec<u64>,
 }
 
 impl State {
-    pub const SIZE: usize = 32;
+    pub const SIZE: usize = 32 + 1;
 }
 
 
