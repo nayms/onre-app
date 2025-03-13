@@ -32,4 +32,8 @@ pub mod onre_app {
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         initialize::initialize(ctx)
     }
+
+    pub fn set_boss(ctx: Context<SetBoss>, new_boss: Pubkey) -> Result<()> {
+        set_boss::set_boss(ctx, new_boss)
+    }
 }
