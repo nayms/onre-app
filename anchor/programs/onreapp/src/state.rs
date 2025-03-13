@@ -11,12 +11,14 @@ pub struct Offer {
     pub amount_bought: u64,
     // TODO: active flag if we don't want to close offer account
     pub active: bool,
+    pub authority_bump: u8,
 }
 
 #[account]
 pub struct OfferList {
     pub offers: Vec<Offer>,
 }
+
 
 impl Offer {
     pub const SIZE: usize = 8 +      // offer_id (u64)
@@ -26,7 +28,9 @@ impl Offer {
             8 +  // sell_token_total_amount (u64)
             8 +  // sell_token_remaining (u64)
             8 +  // amount_bought (u64)
-            1; // active (bool)
+            1 +  // active (bool)
+            1;  // authority_bump (u8)
+
 }
 
 #[account]

@@ -44,6 +44,9 @@
           "name": "state"
         },
         {
+          "name": "offer_token_authority"
+        },
+        {
           "name": "boss",
           "signer": true,
           "relations": [
@@ -146,7 +149,7 @@
             "seeds": [
               {
                 "kind": "account",
-                "path": "state"
+                "path": "offer_token_authority"
               },
               {
                 "kind": "const",
@@ -236,7 +239,7 @@
             "seeds": [
               {
                 "kind": "account",
-                "path": "state"
+                "path": "offer_token_authority"
               },
               {
                 "kind": "const",
@@ -320,6 +323,37 @@
           }
         },
         {
+          "name": "offer_token_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  102,
+                  102,
+                  101,
+                  114,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "offer_id"
+              }
+            ]
+          }
+        },
+        {
           "name": "boss_sell_token_account",
           "writable": true
         },
@@ -365,6 +399,43 @@
         {
           "name": "sell_token_total_amount",
           "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "set_boss",
+      "discriminator": [
+        144,
+        141,
+        235,
+        104,
+        167,
+        250,
+        41,
+        54
+      ],
+      "accounts": [
+        {
+          "name": "state",
+          "writable": true
+        },
+        {
+          "name": "boss",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "state"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "new_boss",
+          "type": "pubkey"
         }
       ]
     }
@@ -456,6 +527,10 @@
           {
             "name": "active",
             "type": "bool"
+          },
+          {
+            "name": "authority_bump",
+            "type": "u8"
           }
         ]
       }

@@ -50,6 +50,9 @@ export type OnreApp = {
           "name": "state"
         },
         {
+          "name": "offerTokenAuthority"
+        },
+        {
           "name": "boss",
           "signer": true,
           "relations": [
@@ -152,7 +155,7 @@ export type OnreApp = {
             "seeds": [
               {
                 "kind": "account",
-                "path": "state"
+                "path": "offerTokenAuthority"
               },
               {
                 "kind": "const",
@@ -242,7 +245,7 @@ export type OnreApp = {
             "seeds": [
               {
                 "kind": "account",
-                "path": "state"
+                "path": "offerTokenAuthority"
               },
               {
                 "kind": "const",
@@ -326,6 +329,37 @@ export type OnreApp = {
           }
         },
         {
+          "name": "offerTokenAuthority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  102,
+                  102,
+                  101,
+                  114,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "offerId"
+              }
+            ]
+          }
+        },
+        {
           "name": "bossSellTokenAccount",
           "writable": true
         },
@@ -371,6 +405,43 @@ export type OnreApp = {
         {
           "name": "sellTokenTotalAmount",
           "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "setBoss",
+      "discriminator": [
+        144,
+        141,
+        235,
+        104,
+        167,
+        250,
+        41,
+        54
+      ],
+      "accounts": [
+        {
+          "name": "state",
+          "writable": true
+        },
+        {
+          "name": "boss",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "state"
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "newBoss",
+          "type": "pubkey"
         }
       ]
     }
@@ -462,6 +533,10 @@ export type OnreApp = {
           {
             "name": "active",
             "type": "bool"
+          },
+          {
+            "name": "authorityBump",
+            "type": "u8"
           }
         ]
       }

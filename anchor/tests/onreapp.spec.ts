@@ -1,15 +1,8 @@
 import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
-import { Keypair, PublicKey, Transaction } from '@solana/web3.js';
+import { Keypair, PublicKey, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
 import { OnreApp } from '../target/types/onre_app';
-import {
-  createAssociatedTokenAccount,
-  createAssociatedTokenAccountInstruction,
-  createMint,
-  getAssociatedTokenAddress,
-  mintTo,
-} from '@solana/spl-token';
-import { getAssociatedTokenAddressSync } from '@solana/spl-token/src/state/mint';
+import { createAssociatedTokenAccount, createMint, getAssociatedTokenAddress, mintTo } from '@solana/spl-token';
 
 describe('onreapp', () => {
   const provider = anchor.AnchorProvider.env();
@@ -26,6 +19,7 @@ describe('onreapp', () => {
   let offerBuyTokenPda: PublicKey;
   let offerId = new anchor.BN(123123123);
   let statePda: PublicKey;
+  let offerAuthority: PublicKey;
 
   beforeAll(async () => {
     // Airdrop SOL to initialBoss for transactions
@@ -74,8 +68,12 @@ describe('onreapp', () => {
     );
 
     [statePda] = PublicKey.findProgramAddressSync([Buffer.from('state')], program.programId);
-    offerSellTokenPda = await getAssociatedTokenAddress(sellTokenMint, statePda, true);
-    offerBuyTokenPda = await getAssociatedTokenAddress(buyTokenMint, statePda, true);
+    [offerAuthority] = PublicKey.findProgramAddressSync(
+      [Buffer.from('offer_authority'), offerId.toArrayLike(Buffer, 'le', 8)],
+      program.programId,
+    );
+    offerSellTokenPda = await getAssociatedTokenAddress(sellTokenMint, offerAuthority, true);
+    offerBuyTokenPda = await getAssociatedTokenAddress(buyTokenMint, offerAuthority, true);
   });
 
   it('Initialize onre with right boss account', async () => {
@@ -88,6 +86,54 @@ describe('onreapp', () => {
     const currentBoss = await program.account.state.fetch(statePda);
 
     expect(currentBoss.boss).toEqual(initialBoss.publicKey);
+  });
+
+  it('Set boss account sets a new boss account', async () => {
+    const newBoss = new anchor.Wallet(Keypair.generate());
+    await program.methods
+      .setBoss(newBoss.publicKey)
+      .accounts({
+        state: statePda,
+      })
+      .rpc();
+    const currentBoss = await program.account.state.fetch(statePda);
+
+    expect(currentBoss.boss).toEqual(newBoss.publicKey);
+
+    // Set the old boss back
+    let signature = await provider.connection.requestAirdrop(newBoss.publicKey, anchor.web3.LAMPORTS_PER_SOL * 20);
+    await provider.connection.confirmTransaction({
+      signature: signature,
+      ...(await provider.connection.getLatestBlockhash()),
+    });
+
+    const latestBlockhash = await provider.connection.getLatestBlockhash();
+    const message = new TransactionMessage({
+      payerKey: newBoss.publicKey,
+      recentBlockhash: latestBlockhash.blockhash,
+      instructions: [
+        await program.methods
+          .setBoss(initialBoss.publicKey)
+          .accountsPartial({
+            state: statePda,
+            boss: newBoss.publicKey,
+          })
+          .instruction(),
+      ],
+    }).compileToLegacyMessage();
+
+    const tx = new VersionedTransaction(message);
+    tx.sign([newBoss.payer]);
+
+    let setBossSignature = await provider.connection.sendTransaction(tx);
+
+    await provider.connection.confirmTransaction({
+      signature: setBossSignature,
+      ...(await provider.connection.getLatestBlockhash()),
+    });
+
+    const finalBoss = await program.account.state.fetch(statePda);
+    expect(finalBoss.boss).toEqual(initialBoss.publicKey);
   });
 
   it('Makes an offer', async () => {
@@ -119,6 +165,59 @@ describe('onreapp', () => {
 
     // Check balance of the offer sell token account
     const offerSellTokenAccountInfo = await provider.connection.getTokenAccountBalance(offerSellTokenPda);
+    expect(+offerSellTokenAccountInfo.value.amount).toEqual(500 * 10 ** 9);
+  });
+
+  it('Make offer fails on boss account with non boss signature', async () => {
+    let newBoss = new anchor.Wallet(Keypair.generate());
+    let signature = await provider.connection.requestAirdrop(newBoss.publicKey, anchor.web3.LAMPORTS_PER_SOL * 20);
+    await provider.connection.confirmTransaction({
+      signature: signature,
+      ...(await provider.connection.getLatestBlockhash()),
+    });
+    await expect(program.methods
+      .makeOffer(offerId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
+      .accountsPartial({
+        bossSellTokenAccount: bossSellTokenAccount,
+        sellTokenMint: sellTokenMint,
+        buyTokenMint: buyTokenMint,
+        state: statePda,
+      })
+      .signers([newBoss.payer])
+      .rpc()
+    ).rejects.toThrow()
+  });
+
+  it('Make offer fails on non boss account with boss signature', async () => {
+    let newBoss = new anchor.Wallet(Keypair.generate());
+    await expect(program.methods
+      .makeOffer(offerId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
+      .accountsPartial({
+        bossSellTokenAccount: bossSellTokenAccount,
+        sellTokenMint: sellTokenMint,
+        buyTokenMint: buyTokenMint,
+        state: statePda,
+        boss: newBoss.publicKey,
+      })
+      .signers([initialBoss.payer])
+      .rpc()
+    ).rejects.toThrow()
+  });
+
+  it('Make offer fails on non boss account with non boss signature', async () => {
+    let newBoss = new anchor.Wallet(Keypair.generate());
+    await expect(program.methods
+      .makeOffer(offerId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
+      .accountsPartial({
+        bossSellTokenAccount: bossSellTokenAccount,
+        sellTokenMint: sellTokenMint,
+        buyTokenMint: buyTokenMint,
+        state: statePda,
+        boss: newBoss.publicKey,
+      })
+      .signers([newBoss.payer])
+      .rpc()
+    ).rejects.toThrow()
   });
 
   it('Close an offer', async () => {
@@ -130,6 +229,7 @@ describe('onreapp', () => {
         offerBuyTokenAccount: offerBuyTokenPda,
         bossSellTokenAccount: bossSellTokenAccount,
         bossBuyTokenAccount: bossBuyTokenAccount,
+        offerTokenAuthority: offerAuthority,
         state: statePda,
       })
       .rpc();
@@ -147,12 +247,8 @@ describe('onreapp', () => {
     expect(offerAccount.amountBought.eq(new anchor.BN(0))).toBe(true);
 
     // Check balance of the boss sell token account
-    const bossSellTokenAccountInfo = await provider.connection.getTokenAccountBalance(
-      bossSellTokenAccount,
-    )
-    const offerSellTokenAccountInfo = await provider.connection.getTokenAccountBalance(
-      offerSellTokenPda,
-    )
+    const bossSellTokenAccountInfo = await provider.connection.getTokenAccountBalance(bossSellTokenAccount);
+    const offerSellTokenAccountInfo = await provider.connection.getTokenAccountBalance(offerSellTokenPda);
     expect(+bossSellTokenAccountInfo.value.amount).toEqual(1000 * 10 ** 9);
     expect(+offerSellTokenAccountInfo.value.amount).toEqual(0);
   });

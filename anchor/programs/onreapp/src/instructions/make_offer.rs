@@ -22,7 +22,7 @@ pub struct MakeOffer<'info> {
         init,
         payer = boss,
         associated_token::mint = sell_token_mint,
-        associated_token::authority = state,
+        associated_token::authority = offer_token_authority,
     )]
     pub offer_sell_token_account: Account<'info, TokenAccount>,
 
@@ -30,9 +30,16 @@ pub struct MakeOffer<'info> {
         init,
         payer = boss,
         associated_token::mint = buy_token_mint,
-        associated_token::authority = state,
+        associated_token::authority = offer_token_authority,
     )]
     pub offer_buy_token_account: Account<'info, TokenAccount>,
+
+    #[account(
+        seeds = [b"offer_authority", offer_id.to_le_bytes().as_ref()],
+        bump
+    )]
+    /// CHECK:
+    pub offer_token_authority: AccountInfo<'info>,
 
     #[account(mut)]
     pub boss_sell_token_account: Account<'info, TokenAccount>,
@@ -65,6 +72,7 @@ pub fn make_offer(
     offer.sell_token_remaining = sell_token_total_amount;
     offer.amount_bought = 0;
     offer.active = true;
+    offer.authority_bump = ctx.bumps.offer_token_authority;
 
     let cpi_ctx = CpiContext::new(
         ctx.accounts.token_program.to_account_info(),
