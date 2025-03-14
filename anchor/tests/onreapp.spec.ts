@@ -1,6 +1,6 @@
 import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
-import { Keypair, PublicKey, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
+import { Keypair, PublicKey, TransactionMessage, VersionedMessage, VersionedTransaction } from '@solana/web3.js';
 import { OnreApp } from '../target/types/onre_app';
 import { createAssociatedTokenAccount, createMint, getAssociatedTokenAddress, mintTo } from '@solana/spl-token';
 
@@ -184,8 +184,8 @@ describe('onreapp', () => {
         state: statePda,
       })
       .signers([newBoss.payer])
-      .rpc()
-    ).rejects.toThrow()
+      .rpc(),
+    ).rejects.toThrow();
   });
 
   it('Make offer fails on non boss account with boss signature', async () => {
@@ -200,8 +200,8 @@ describe('onreapp', () => {
         boss: newBoss.publicKey,
       })
       .signers([initialBoss.payer])
-      .rpc()
-    ).rejects.toThrow()
+      .rpc(),
+    ).rejects.toThrow();
   });
 
   it('Make offer fails on non boss account with non boss signature', async () => {
@@ -216,12 +216,17 @@ describe('onreapp', () => {
         boss: newBoss.publicKey,
       })
       .signers([newBoss.payer])
-      .rpc()
-    ).rejects.toThrow()
+      .rpc(),
+    ).rejects.toThrow();
   });
 
-  it('Close an offer', async () => {
-    await program.methods
+  it('Replace an offer', async () => {
+    const newOfferId = new anchor.BN(123123124);
+    const [newOfferAuthorityPda] = PublicKey.findProgramAddressSync([Buffer.from('offer_authority'), newOfferId.toArrayLike(Buffer, 'le', 8)], program.programId);
+    const newOfferSellTokenPda = await getAssociatedTokenAddress(sellTokenMint, newOfferAuthorityPda, true);
+    const newOfferBuyTokenPda = await getAssociatedTokenAddress(buyTokenMint, newOfferAuthorityPda, true);
+
+    let closeInstruction = await program.methods
       .closeOffer()
       .accounts({
         offer: offerPda,
@@ -231,13 +236,38 @@ describe('onreapp', () => {
         bossBuyTokenAccount: bossBuyTokenAccount,
         offerTokenAuthority: offerAuthority,
         state: statePda,
-      })
-      .rpc();
+      }).instruction();
+
+    let makeOfferInstruction = await program.methods.makeOffer(newOfferId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
+      .accounts({
+        bossSellTokenAccount: bossSellTokenAccount,
+        sellTokenMint: sellTokenMint,
+        buyTokenMint: buyTokenMint,
+        state: statePda,
+      }).instruction();
+
+    let tx = new VersionedTransaction(new TransactionMessage({
+      payerKey: initialBoss.publicKey,
+      recentBlockhash: (await provider.connection.getLatestBlockhash()).blockhash,
+      instructions: [closeInstruction, makeOfferInstruction],
+    }).compileToLegacyMessage())
+
+    let versionedTransaction = await initialBoss.signTransaction(tx);
+
+    let signedTransctionBytes = versionedTransaction.serialize();
+    let signature = await provider.connection.sendRawTransaction(signedTransctionBytes);
+
+    await provider.connection.confirmTransaction({
+      signature: signature,
+      ...(await provider.connection.getLatestBlockhash()),
+    });
+
+  const [newOfferPda] = PublicKey.findProgramAddressSync( [Buffer.from('offer'), newOfferId.toArrayLike(Buffer, 'le', 8)], program.programId);
 
     // Fetch the offer account
-    const offerAccount = await program.account.offer.fetch(offerPda);
+    const offerAccount = await program.account.offer.fetch(newOfferPda);
     // Check the offer attributes
-    expect(offerAccount.offerId.eq(offerId)).toBe(true);
+    expect(offerAccount.offerId.eq(newOfferId)).toBe(true);
     expect(offerAccount.sellTokenMint.toBase58()).toEqual(sellTokenMint.toBase58());
     expect(offerAccount.buyTokenMint.toBase58()).toEqual(buyTokenMint.toBase58());
 
@@ -248,8 +278,8 @@ describe('onreapp', () => {
 
     // Check balance of the boss sell token account
     const bossSellTokenAccountInfo = await provider.connection.getTokenAccountBalance(bossSellTokenAccount);
-    const offerSellTokenAccountInfo = await provider.connection.getTokenAccountBalance(offerSellTokenPda);
-    expect(+bossSellTokenAccountInfo.value.amount).toEqual(1000 * 10 ** 9);
-    expect(+offerSellTokenAccountInfo.value.amount).toEqual(0);
+    const offerSellTokenAccountInfo = await provider.connection.getTokenAccountBalance(newOfferSellTokenPda);
+    expect(+bossSellTokenAccountInfo.value.amount).toEqual(500 * 10 ** 9);
+    expect(+offerSellTokenAccountInfo.value.amount).toEqual(500 * 10 ** 9);
   });
 });
