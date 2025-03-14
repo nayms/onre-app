@@ -6,7 +6,9 @@ use anchor_spl::token::{Token, TokenAccount, Transfer};
 
 #[derive(Accounts)]
 pub struct CloseOffer<'info> {
-    #[account(mut)]
+    #[account(
+        mut,
+        close = boss)    ]
     pub offer: Account<'info, Offer>,
     #[account(mut)]
     pub offer_sell_token_account: Account<'info, TokenAccount>,
