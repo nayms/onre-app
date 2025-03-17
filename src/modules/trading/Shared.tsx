@@ -103,7 +103,9 @@ const Input = styled.input`
   font-family: ${props => props.theme.font.family};
   font-size: 28px;
   font-weight: 500;
-  field-sizing: content;
+  flex: 0 1 100%;
+  max-width: 80%;
+  width: 100%;
 
   border: none;
   color: #949ca9;
@@ -116,8 +118,11 @@ const Input = styled.input`
 `;
 
 const Symbol = styled.div`
+  flex: 1 1 20%;
   font-size: 28px;
   font-weight: 400;
+  text-align: right;
+  white-space: nowrap;
   color: #949ca9;
 `;
 

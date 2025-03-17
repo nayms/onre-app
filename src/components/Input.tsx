@@ -2,8 +2,6 @@ import styled from 'styled-components';
 
 export const Checkbox = styled.input.attrs({ type: 'checkbox' })`
   position: relative;
-  display: inline;
-
   appearance: none;
   outline-color: ${({ theme }) => theme.color.text.active};
   width: 16px;
