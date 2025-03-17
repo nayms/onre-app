@@ -19,12 +19,10 @@ pub struct Initialize<'info> {
     pub system_program: Program<'info, System>,
 }
 
-
 pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
     let state = &mut ctx.accounts.state;
     if state.boss == Pubkey::default() {
         state.boss = ctx.accounts.boss.key();
     }
-    state.bump = ctx.bumps.state;
     Ok(())
 }

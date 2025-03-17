@@ -26,14 +26,279 @@
         },
         {
           "name": "offer_sell_token_account",
-          "writable": true
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "offer_token_authority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "offer.sell_token_mint",
+                "account": "Offer"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
         },
         {
-          "name": "offer_buy_token_account",
-          "writable": true
+          "name": "offer_buy_1_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "offer_token_authority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "offer.buy_token_mint_1",
+                "account": "Offer"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
         },
         {
-          "name": "boss_buy_token_account",
+          "name": "offer_buy_2_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "offer_token_authority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "offer.buy_token_mint_2",
+                "account": "Offer"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "boss_buy_1_token_account",
           "writable": true
         },
         {
@@ -144,7 +409,6 @@
         },
         {
           "name": "offer_sell_token_account",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -233,8 +497,7 @@
           }
         },
         {
-          "name": "offer_buy_token_account",
-          "writable": true,
+          "name": "offer_buy_token_1_account",
           "pda": {
             "seeds": [
               {
@@ -280,7 +543,96 @@
               },
               {
                 "kind": "account",
-                "path": "buy_token_mint"
+                "path": "buy_token_1_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "offer_buy_token_2_account",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "offer_token_authority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "buy_token_2_mint"
               }
             ],
             "program": {
@@ -354,14 +706,21 @@
           }
         },
         {
-          "name": "boss_sell_token_account",
+          "name": "boss_buy_token_1_account",
+          "writable": true
+        },
+        {
+          "name": "boss_buy_token_2_account",
           "writable": true
         },
         {
           "name": "sell_token_mint"
         },
         {
-          "name": "buy_token_mint"
+          "name": "buy_token_1_mint"
+        },
+        {
+          "name": "buy_token_2_mint"
         },
         {
           "name": "state"
@@ -393,7 +752,11 @@
           "type": "u64"
         },
         {
-          "name": "buy_token_total_amount",
+          "name": "buy_token_1_total_amount",
+          "type": "u64"
+        },
+        {
+          "name": "buy_token_2_total_amount",
           "type": "u64"
         },
         {
@@ -476,16 +839,11 @@
     },
     {
       "code": 6001,
-      "name": "OfferInactive",
-      "msg": "The offer is inactive."
-    },
-    {
-      "code": 6002,
       "name": "InvalidSellTokenMint",
       "msg": "The sell token mint does not match the offer."
     },
     {
-      "code": 6003,
+      "code": 6002,
       "name": "InvalidBuyTokenMint",
       "msg": "The buy token mint does not match the offer."
     }
@@ -501,32 +859,28 @@
             "type": "u64"
           },
           {
-            "name": "buy_token_mint",
-            "type": "pubkey"
-          },
-          {
             "name": "sell_token_mint",
             "type": "pubkey"
           },
           {
-            "name": "buy_token_total_amount",
+            "name": "buy_token_mint_1",
+            "type": "pubkey"
+          },
+          {
+            "name": "buy_token_mint_2",
+            "type": "pubkey"
+          },
+          {
+            "name": "buy_token_1_total_amount",
+            "type": "u64"
+          },
+          {
+            "name": "buy_token_2_total_amount",
             "type": "u64"
           },
           {
             "name": "sell_token_total_amount",
             "type": "u64"
-          },
-          {
-            "name": "sell_token_remaining",
-            "type": "u64"
-          },
-          {
-            "name": "amount_bought",
-            "type": "u64"
-          },
-          {
-            "name": "active",
-            "type": "bool"
           },
           {
             "name": "authority_bump",
@@ -543,10 +897,6 @@
           {
             "name": "boss",
             "type": "pubkey"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
           }
         ]
       }

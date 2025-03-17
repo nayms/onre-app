@@ -14,13 +14,15 @@ pub mod onre_app {
     pub fn make_offer(
         ctx: Context<MakeOffer>,
         offer_id: u64,
-        buy_token_total_amount: u64,
+        buy_token_1_total_amount: u64,
+        buy_token_2_total_amount: u64,
         sell_token_total_amount: u64,
     ) -> Result<()> {
         make_offer::make_offer(
             ctx,
             offer_id,
-            buy_token_total_amount,
+            buy_token_1_total_amount,
+            buy_token_2_total_amount,
             sell_token_total_amount,
         )
     }

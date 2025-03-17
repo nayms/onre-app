@@ -32,14 +32,279 @@ export type OnreApp = {
         },
         {
           "name": "offerSellTokenAccount",
-          "writable": true
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "offerTokenAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "offer.sell_token_mint",
+                "account": "offer"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
         },
         {
-          "name": "offerBuyTokenAccount",
-          "writable": true
+          "name": "offerBuy1TokenAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "offerTokenAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "offer.buy_token_mint_1",
+                "account": "offer"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
         },
         {
-          "name": "bossBuyTokenAccount",
+          "name": "offerBuy2TokenAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "offerTokenAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "offer.buy_token_mint_2",
+                "account": "offer"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "bossBuy1TokenAccount",
           "writable": true
         },
         {
@@ -150,7 +415,6 @@ export type OnreApp = {
         },
         {
           "name": "offerSellTokenAccount",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -239,8 +503,7 @@ export type OnreApp = {
           }
         },
         {
-          "name": "offerBuyTokenAccount",
-          "writable": true,
+          "name": "offerBuyToken1Account",
           "pda": {
             "seeds": [
               {
@@ -286,7 +549,96 @@ export type OnreApp = {
               },
               {
                 "kind": "account",
-                "path": "buyTokenMint"
+                "path": "buyToken1Mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "offerBuyToken2Account",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "offerTokenAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "buyToken2Mint"
               }
             ],
             "program": {
@@ -360,14 +712,21 @@ export type OnreApp = {
           }
         },
         {
-          "name": "bossSellTokenAccount",
+          "name": "bossBuyToken1Account",
+          "writable": true
+        },
+        {
+          "name": "bossBuyToken2Account",
           "writable": true
         },
         {
           "name": "sellTokenMint"
         },
         {
-          "name": "buyTokenMint"
+          "name": "buyToken1Mint"
+        },
+        {
+          "name": "buyToken2Mint"
         },
         {
           "name": "state"
@@ -399,7 +758,11 @@ export type OnreApp = {
           "type": "u64"
         },
         {
-          "name": "buyTokenTotalAmount",
+          "name": "buyToken1TotalAmount",
+          "type": "u64"
+        },
+        {
+          "name": "buyToken2TotalAmount",
           "type": "u64"
         },
         {
@@ -482,16 +845,11 @@ export type OnreApp = {
     },
     {
       "code": 6001,
-      "name": "offerInactive",
-      "msg": "The offer is inactive."
-    },
-    {
-      "code": 6002,
       "name": "invalidSellTokenMint",
       "msg": "The sell token mint does not match the offer."
     },
     {
-      "code": 6003,
+      "code": 6002,
       "name": "invalidBuyTokenMint",
       "msg": "The buy token mint does not match the offer."
     }
@@ -507,32 +865,28 @@ export type OnreApp = {
             "type": "u64"
           },
           {
-            "name": "buyTokenMint",
-            "type": "pubkey"
-          },
-          {
             "name": "sellTokenMint",
             "type": "pubkey"
           },
           {
-            "name": "buyTokenTotalAmount",
+            "name": "buyTokenMint1",
+            "type": "pubkey"
+          },
+          {
+            "name": "buyTokenMint2",
+            "type": "pubkey"
+          },
+          {
+            "name": "buyToken1TotalAmount",
+            "type": "u64"
+          },
+          {
+            "name": "buyToken2TotalAmount",
             "type": "u64"
           },
           {
             "name": "sellTokenTotalAmount",
             "type": "u64"
-          },
-          {
-            "name": "sellTokenRemaining",
-            "type": "u64"
-          },
-          {
-            "name": "amountBought",
-            "type": "u64"
-          },
-          {
-            "name": "active",
-            "type": "bool"
           },
           {
             "name": "authorityBump",
@@ -549,10 +903,6 @@ export type OnreApp = {
           {
             "name": "boss",
             "type": "pubkey"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
           }
         ]
       }
