@@ -1,55 +1,6 @@
 import React, { HTMLAttributes } from 'react';
 import styled, { css } from 'styled-components';
-
-export const Row = styled.div`
-  position: relative;
-  display: flex;
-  flex-direction: row;
-  gap: 24px 24px;
-  width: 100%;
-  padding: 0;
-`;
-type ColumnProps = {
-  align?: 'left' | 'center' | 'right';
-  alignSelf?: 'left' | 'center' | 'right';
-  verticalAlign?: 'top' | 'center' | 'bottom';
-};
-
-export const Column = styled.div<ColumnProps>`
-  ${props =>
-    props.alignSelf === 'right'
-      ? css`
-          margin-left: auto;
-        `
-      : props.alignSelf === 'center'
-        ? css`
-            margin-left: auto;
-            margin-right: auto;
-          `
-        : ``}
-
-  ${props =>
-    props.align === 'right'
-      ? css`
-          text-align: right;
-        `
-      : props.align === 'center'
-        ? css`
-            text-align: center;
-          `
-        : ``}
-
-  ${props =>
-    props.verticalAlign === 'center'
-      ? css`
-          align-content: center;
-        `
-      : props.verticalAlign === 'bottom'
-        ? css`
-            align-content: flex-end;
-          `
-        : ``}
-`;
+import { Column, Row } from '@/components/Layout.tsx';
 
 const TextColumn = styled(Column)`
   color: #5c6175;
@@ -65,16 +16,22 @@ const LeftColumn = styled(TextColumn)`
   text-align: left;
 `;
 
-const RightColumn = styled(TextColumn).attrs({ alignSelf: 'right' })`
+const RightColumn = styled(TextColumn)`
   text-align: right;
+  margin-left: auto;
 `;
 
 const ValueRow = styled(Row)<{ $border?: boolean }>`
   &:not(:first-child) {
     padding-top: 8px;
   }
+
   &:not(:last-child) {
-    ${props => props.$border && 'border-bottom: 1px solid #e5e7f6;'}
+    ${({ $border }) =>
+      $border
+      && css`
+        border-bottom: 1px solid #e5e7f6;
+      `}
     padding-bottom: 8px;
   }
 `;
@@ -85,9 +42,8 @@ type ValueDisplayProps = {
 };
 
 export const ValueGroup = styled.div`
-  //border-top: 1px solid #e5e7f6;
-  //border-bottom: 1px solid #e5e7f6;
   padding: 12px 0;
+
   &:not(:last-child) {
     margin-bottom: 12px;
   }
@@ -219,7 +175,7 @@ export const Button = styled.button`
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 8px #293bba;
+    box-shadow: 0 0 8px #293bba80;
   }
 
   &:hover {

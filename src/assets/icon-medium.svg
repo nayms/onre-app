@@ -1,13 +1,11 @@
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <g clip-path="url(#clip0_183_1424)">
-    <path
-      d="M4 6.00012C4 5.46969 4.21071 4.96098 4.58579 4.58591C4.96086 4.21084 5.46957 4.00012 6 4.00012H18C18.5304 4.00012 19.0391 4.21084 19.4142 4.58591C19.7893 4.96098 20 5.46969 20 6.00012V18.0001C20 18.5306 19.7893 19.0393 19.4142 19.4143C19.0391 19.7894 18.5304 20.0001 18 20.0001H6C5.46957 20.0001 4.96086 19.7894 4.58579 19.4143C4.21071 19.0393 4 18.5306 4 18.0001V6.00012Z"
-      stroke="#1B37F2" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M8 9.00012H9L12 12.0001L15 9.00012H16" stroke="#1B37F2" stroke-width="1.75" stroke-linecap="round"
-      stroke-linejoin="round"/>
-    <path d="M8 15.0001H10" stroke="#1B37F2" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M14 15.0001H16" stroke="#1B37F2" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M9 9.00012V15.0001" stroke="#1B37F2" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M15 9.00012V15.0001" stroke="#1B37F2" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
+  <path
+    d="M4 6.00012C4 5.46969 4.21071 4.96098 4.58579 4.58591C4.96086 4.21084 5.46957 4.00012 6 4.00012H18C18.5304 4.00012 19.0391 4.21084 19.4142 4.58591C19.7893 4.96098 20 5.46969 20 6.00012V18.0001C20 18.5306 19.7893 19.0393 19.4142 19.4143C19.0391 19.7894 18.5304 20.0001 18 20.0001H6C5.46957 20.0001 4.96086 19.7894 4.58579 19.4143C4.21071 19.0393 4 18.5306 4 18.0001V6.00012Z"
+    stroke="#1B37F2" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8 9.00012H9L12 12.0001L15 9.00012H16" stroke="#1B37F2" stroke-width="1.75" stroke-linecap="round"
+        stroke-linejoin="round"/>
+  <path d="M8 15.0001H10" stroke="#1B37F2" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M14 15.0001H16" stroke="#1B37F2" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M9 9.00012V15.0001" stroke="#1B37F2" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M15 9.00012V15.0001" stroke="#1B37F2" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

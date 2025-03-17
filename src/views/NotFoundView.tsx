@@ -1,7 +1,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
-export const PageNotFound: React.FC = () => (
+export const NotFoundView: React.FC = () => (
   <>
     <Helmet>
       <title>404 | OnRe</title>

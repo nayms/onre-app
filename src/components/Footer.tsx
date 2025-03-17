@@ -1,5 +1,5 @@
 import React, { PropsWithChildren } from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import linkedinUrl from '@/assets/icon-linkedin.svg';
 import twitterUrl from '@/assets/icon-x.svg';
 import telegramUrl from '@/assets/icon-telegram.svg';
@@ -14,9 +14,11 @@ const FooterContainer = styled.div`
   grid-template-columns: 1fr auto 1fr;
   grid-gap: 32px;
   align-items: center;
-  background: ${props => props.theme.color.view.background};
-  color: ${props => props.theme.palette.grey[400]};
-  font-size: 12px;
+  ${({ theme: { color, font } }) => css`
+    background: ${color.paper};
+    color: ${color.text.normal};
+    font-size: ${font.size.tiny};
+  `}
 `;
 
 const NaymsLinks = styled.div`
@@ -24,16 +26,11 @@ const NaymsLinks = styled.div`
   gap: 24px;
   justify-self: end;
   white-space: nowrap;
-
-  a {
-    color: ${props => props.theme.color.link};
-    text-decoration: none;
-  }
 `;
 
 const Copyright = styled.span``;
 
-const SocialMediaLinks = styled.div`
+const SocialLinks = styled.div`
   display: flex;
   gap: 16px;
 `;
@@ -72,13 +69,13 @@ export const Footer = () => {
 
       <Copyright>{copyrightLine}</Copyright>
 
-      <SocialMediaLinks>
+      <SocialLinks>
         <ExternalLink icon={linkedinUrl} href="https://linkedin.com/company/nayms" />
         <ExternalLink icon={twitterUrl} href="https://twitter.com/nayms" />
         <ExternalLink icon={telegramUrl} href="https://t.me/naymscommunity" />
         <ExternalLink icon={mediumUrl} href="https://medium.com/nayms" />
         <ExternalLink icon={githubUrl} href="https://github.com/nayms" />
-      </SocialMediaLinks>
+      </SocialLinks>
     </FooterContainer>
   );
 };

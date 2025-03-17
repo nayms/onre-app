@@ -6,6 +6,8 @@
   "semi": true,
   "trailingComma": "all",
   "arrowParens": "avoid",
+  "experimentalTernaries": true,
+  "experimentalOperatorPosition": "start",
   "overrides": [
     {
       "files": [".prettierrc"],
@@ -15,3 +17,4 @@
     }
   ]
 }
+

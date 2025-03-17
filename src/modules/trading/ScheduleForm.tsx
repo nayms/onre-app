@@ -3,20 +3,19 @@ import { formatNumber } from '@/utils/number-formatting.ts';
 import {
   BalanceSummary,
   Button,
-  Column,
   LinkControl,
-  Row,
   TokenAmountGroup,
   TokenAmountInput,
   ValueDisplay,
   ValueGroup,
-} from '@/components/trading/Shared.tsx';
-import { TradeRedemptionModel } from '@/components/trading/types.ts';
+} from './Shared.tsx';
+import { TradeScheduleRedemptionModel } from './types.ts';
 import { formatLocalShortDate } from '@/utils/format-date.ts';
+import { Column, Row } from '@/components/Layout.tsx';
 
-type RedeemFormProps = { data: TradeRedemptionModel };
+type ScheduleFormProps = { data: TradeScheduleRedemptionModel };
 
-export const RedeemForm: React.FC<RedeemFormProps> = ({ data }) => {
+export const ScheduleForm: React.FC<ScheduleFormProps> = ({ data }) => {
   const [scheduleAmount, setScheduleAmount] = useState<string>();
 
   const handleScheduleMax = () => {};

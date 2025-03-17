@@ -10,10 +10,16 @@ export type TradePurchaseModel = {
   onReAPY: number;
 };
 
-export type TradeRedemptionModel = {
+export type TradeScheduleRedemptionModel = {
   redeemableSupply: Token;
   estimatedRedemptionPrice: Token;
   nextRedemptionDate: string;
   nextRedemptionDeadline: string;
   scheduledForRedemption: Token;
+};
+
+export type TradeRedemptionModel = {
+  amountToCollect: Token;
+  amountToReceive: Token;
+  dueDate: string;
 };

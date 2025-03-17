@@ -1,23 +1,23 @@
 import React, { useState } from 'react';
 import { formatNumber, formatPercent } from '@/utils/number-formatting.ts';
-import { TradePurchaseModel } from '@/components/trading/types.ts';
+import { TradePurchaseModel } from './types.ts';
 import {
   BalanceSummary,
   Button,
-  Column,
   LinkControl,
-  Row,
   TokenAmountGroup,
   TokenAmountInput,
   ValueDisplay,
   ValueGroup,
-} from '@/components/trading/Shared.tsx';
+} from './Shared.tsx';
+import { Checkbox, Label } from '@/components/Input.tsx';
 
 type PurchaseFormProps = { data: TradePurchaseModel };
 
 export const PurchaseForm: React.FC<PurchaseFormProps> = ({ data }) => {
   const [payAmount, setPayAmount] = useState<string>();
   const [receiveAmount, setReceiveAmount] = useState<string>();
+  const [accepted, setAccepted] = useState(false);
 
   const handleMaxPay = () => {};
   const handleMaxReceive = () => {};
@@ -75,15 +75,16 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ data }) => {
       </TokenAmountGroup>
 
       <ValueGroup>
-        <Row style={{ gap: 8 }}>
-          <Column>
-            <input type="checkbox" id="rememberMe" name="rememberMe" />
-          </Column>
-          <Column>
-            I have read and agree to the <a href="">Participation Agreement</a> and the{' '}
-            <a href="">Participation Agreement Addendum</a>
-          </Column>
-        </Row>
+        <Label>
+          <Checkbox
+            checked={accepted}
+            onChange={() => {
+              setAccepted(accepted => !accepted);
+            }}
+          />
+          I have read and agree to the <a href="https://nayms.com">Participation Agreement</a> and the{' '}
+          <a href="https://nayms.com">Participation Agreement Addendum</a>
+        </Label>
       </ValueGroup>
 
       <Button>Purchase</Button>
