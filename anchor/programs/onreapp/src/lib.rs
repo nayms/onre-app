@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 
 pub mod instructions;
+pub mod contexts;
 pub mod state;
 
 use instructions::*;
@@ -41,8 +42,8 @@ pub mod onre_app {
         )
     }
 
-    pub fn close_offer(ctx: Context<CloseOffer>) -> Result<()> {
-        close_offer::close_offer(ctx)
+    pub fn close_offer_one(ctx: Context<CloseOfferOne>) -> Result<()> {
+        close_offer::close_offer_one(ctx)
     }
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
