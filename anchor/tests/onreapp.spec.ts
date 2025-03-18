@@ -207,9 +207,6 @@ describe('onreapp', () => {
     // Check balance of the offer sell token account
     const offerBuyTokenAccountInfo = await provider.connection.getTokenAccountBalance(offerBuyToken1Pda);
     expect(+offerBuyTokenAccountInfo.value.amount).toEqual(500 * 10 ** 9);
-
-    const offer = await program.account.offer.fetch(offerPda);
-    console.log(offer);
   });
 
   it('Make offer fails on boss account with non boss signature', async () => {
@@ -286,7 +283,6 @@ describe('onreapp', () => {
       })
       .instruction();
 
-    console.log("creating atas");
     const offerSellTokenAccountInstruction = createAssociatedTokenAccountInstruction(
       initialBoss.payer.publicKey,
       getAssociatedTokenAddressSync(sellTokenMint, newOfferAuthorityPda, true),
@@ -300,7 +296,6 @@ describe('onreapp', () => {
       buyToken1Mint,
     );
 
-    console.log("done creating atas")
     let makeOfferInstruction = await program.methods
       .makeOfferOne(newOfferId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
       .accounts({
@@ -356,5 +351,199 @@ describe('onreapp', () => {
     expect(+bossSellTokenAccountInfo.value.amount).toEqual(1000 * 10 ** 9);
     expect(+offerSellTokenAccountInfo.value.amount).toEqual(0);
     expect(+offerBuyToken1AccountInfo.value.amount).toEqual(500 * 10 ** 9);
+  });
+
+  it('Create and take offer', async () => {
+    const offerId = new anchor.BN(1);
+    const [offerAuthority] = PublicKey.findProgramAddressSync(
+      [Buffer.from('offer_authority'), offerId.toArrayLike(Buffer, 'le', 8)],
+      program.programId,
+    );
+
+    const [offerPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from('offer'), offerId.toArrayLike(Buffer, 'le', 8)],
+      program.programId,
+    );
+    const offerSellTokenPda = await getAssociatedTokenAddress(sellTokenMint, offerAuthority, true);
+    const offerBuyToken1Pda = await getAssociatedTokenAddress(buyToken1Mint, offerAuthority, true);
+    const offerBuyToken2Pda = await getAssociatedTokenAddress(buyToken2Mint, offerAuthority, true);
+
+    const offerSellTokenAccountInstruction = createAssociatedTokenAccountInstruction(
+      initialBoss.payer.publicKey,
+      offerSellTokenPda,
+      offerAuthority,
+      sellTokenMint,
+    );
+
+    const offerBuyToken1AccountInstruction = createAssociatedTokenAccountInstruction(
+      initialBoss.payer.publicKey,
+      offerBuyToken1Pda,
+      offerAuthority,
+      buyToken1Mint,
+    );
+
+    const offerBuyToken2AccountInstruction = createAssociatedTokenAccountInstruction(
+      initialBoss.payer.publicKey,
+      offerBuyToken2Pda,
+      offerAuthority,
+      buyToken2Mint,
+    );
+
+    await program.methods
+      .makeOfferTwo(offerId, new anchor.BN(100 * 10 ** 9), new anchor.BN(20 * 10 ** 9), new anchor.BN(240 * 10 ** 9))
+      .accounts({
+        bossBuyToken1Account: bossBuyTokenAccount1,
+        bossBuyToken2Account: bossBuyTokenAccount2,
+        sellTokenMint: sellTokenMint,
+        buyToken1Mint: buyToken1Mint,
+        buyToken2Mint: buyToken2Mint,
+        state: statePda,
+      })
+      .preInstructions([
+        offerSellTokenAccountInstruction,
+        offerBuyToken1AccountInstruction,
+        offerBuyToken2AccountInstruction,
+      ])
+      .rpc();
+
+    const user1 = new anchor.Wallet(Keypair.generate());
+    let signature = await provider.connection.requestAirdrop(user1.publicKey, anchor.web3.LAMPORTS_PER_SOL * 20);
+    await provider.connection.confirmTransaction({ signature, ...(await provider.connection.getLatestBlockhash()) });
+
+    const user1SellTokenAccount = await createAssociatedTokenAccount(
+      provider.connection,
+      user1.payer,
+      sellTokenMint,
+      user1.publicKey,
+    );
+    await mintTo(
+      provider.connection,
+      initialBoss.payer,
+      sellTokenMint,
+      user1SellTokenAccount,
+      initialBoss.publicKey,
+      1000 * 10 ** 9,
+    );
+
+    let takeOfferInstruction = await program.methods
+      .takeOfferTwo(new anchor.BN(120 * 10 ** 9))
+      .accountsPartial({
+        userSellTokenAccount: user1SellTokenAccount,
+        buyToken1Mint: buyToken1Mint,
+        buyToken2Mint: buyToken2Mint,
+        offer: offerPda,
+        user: user1.publicKey,
+      })
+      .instruction();
+
+    let createUser1BuyToken1AccountInstruction = createAssociatedTokenAccountInstruction(
+      user1.payer.publicKey,
+      getAssociatedTokenAddressSync(buyToken1Mint, user1.publicKey, true),
+      user1.publicKey,
+      buyToken1Mint,
+    );
+
+    let createUser1BuyToken2AccountInstruction = createAssociatedTokenAccountInstruction(
+      user1.payer.publicKey,
+      getAssociatedTokenAddressSync(buyToken2Mint, user1.publicKey, true),
+      user1.publicKey,
+      buyToken2Mint,
+    );
+
+    let tx = new VersionedTransaction(
+      new TransactionMessage({
+        payerKey: user1.publicKey,
+        recentBlockhash: (await provider.connection.getLatestBlockhash()).blockhash,
+        instructions: [createUser1BuyToken1AccountInstruction, createUser1BuyToken2AccountInstruction, takeOfferInstruction],
+      }).compileToLegacyMessage(),
+    );
+
+    let versionedTransaction = await user1.signTransaction(tx);
+
+    let signedTransctionBytes = versionedTransaction.serialize();
+    let takeOfferSignature = await provider.connection.sendRawTransaction(signedTransctionBytes);
+
+    await provider.connection.confirmTransaction({
+      signature: takeOfferSignature,
+      ...(await provider.connection.getLatestBlockhash()),
+    });
+
+    const offerBuyToken1Info = await provider.connection.getTokenAccountBalance(offerBuyToken1Pda);
+    const offerBuyToken2Info = await provider.connection.getTokenAccountBalance(offerBuyToken2Pda);
+    const offerSellTokenInfo = await provider.connection.getTokenAccountBalance(offerSellTokenPda);
+
+    expect(+offerBuyToken1Info.value.amount).toEqual(50 * 10 ** 9);
+    expect(+offerBuyToken2Info.value.amount).toEqual(10 * 10 ** 9);
+    expect(+offerSellTokenInfo.value.amount).toEqual(120 * 10 ** 9);
+
+    const user2 = new anchor.Wallet(Keypair.generate());
+    let user2LamportsSignature = await provider.connection.requestAirdrop(user2.publicKey, anchor.web3.LAMPORTS_PER_SOL * 20);
+    await provider.connection.confirmTransaction({ signature: user2LamportsSignature, ...(await provider.connection.getLatestBlockhash()) });
+
+    const user2SellTokenAccount = await createAssociatedTokenAccount(
+      provider.connection,
+      user2.payer,
+      sellTokenMint,
+      user2.publicKey,
+    );
+    await mintTo(
+      provider.connection,
+      initialBoss.payer,
+      sellTokenMint,
+      user2SellTokenAccount,
+      initialBoss.publicKey,
+      1000 * 10 ** 9,
+    );
+
+    let createUser2BuyToken1AccountInstruction = createAssociatedTokenAccountInstruction(
+      user2.payer.publicKey,
+      getAssociatedTokenAddressSync(buyToken1Mint, user2.publicKey, true),
+      user2.publicKey,
+      buyToken1Mint,
+    );
+
+    let createUser2BuyToken2AccountInstruction = createAssociatedTokenAccountInstruction(
+      user2.payer.publicKey,
+      getAssociatedTokenAddressSync(buyToken2Mint, user2.publicKey, true),
+      user2.publicKey,
+      buyToken2Mint,
+    );
+
+    let takeOfferInstruction2 = await program.methods
+      .takeOfferTwo(new anchor.BN(24 * 10 ** 9))
+      .accountsPartial({
+        userSellTokenAccount: user2SellTokenAccount,
+        buyToken1Mint: buyToken1Mint,
+        buyToken2Mint: buyToken2Mint,
+        offer: offerPda,
+        user: user2.publicKey,
+      })
+      .instruction();
+
+    let tx2 = new VersionedTransaction(
+      new TransactionMessage({
+        payerKey: user2.publicKey,
+        recentBlockhash: (await provider.connection.getLatestBlockhash()).blockhash,
+        instructions: [createUser2BuyToken1AccountInstruction, createUser2BuyToken2AccountInstruction, takeOfferInstruction2],
+      }).compileToLegacyMessage(),
+    );
+
+    let versionedTransaction2 = await user2.signTransaction(tx2);
+
+    let signedTransctionBytes2 = versionedTransaction2.serialize();
+    let takeOfferSignature2 = await provider.connection.sendRawTransaction(signedTransctionBytes2);
+
+    await provider.connection.confirmTransaction({
+      signature: takeOfferSignature2,
+      ...(await provider.connection.getLatestBlockhash()),
+    });
+
+    const offerBuyToken1Info2 = await provider.connection.getTokenAccountBalance(offerBuyToken1Pda);
+    const offerBuyToken2Info2 = await provider.connection.getTokenAccountBalance(offerBuyToken2Pda);
+    const offerSellTokenInfo2 = await provider.connection.getTokenAccountBalance(offerSellTokenPda);
+
+    expect(+offerSellTokenInfo2.value.amount).toEqual(144 * 10 ** 9);
+    expect(+offerBuyToken1Info2.value.amount).toEqual(40 * 10 ** 9);
+    expect(+offerBuyToken2Info2.value.amount).toEqual(8 * 10 ** 9);
   });
 });
