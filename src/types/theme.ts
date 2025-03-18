@@ -18,7 +18,7 @@ export type FontSizeKey = 'xs' | 'sm' | 'tiny' | 'base' | 'lg' | 'xl' | 'xxl' | 
 
 export type FontWeightKey = 'lighter' | 'light' | 'regular' | 'medium' | 'semibold' | 'bold';
 
-export type FontShorthandResolver = (arg: {
+export type FontShorthandResolver = (arg?: {
   size?: FontSizeKey | string;
   weight?: FontWeightKey | number;
   lineHeight?: string | number;

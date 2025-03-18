@@ -1,8 +1,7 @@
 import React from 'react';
 import styled, { useTheme } from 'styled-components';
 import { useThemeSwitcher } from '@/data/ThemeProvider.tsx';
-// import { WalletButton } from '@/components/_old_from_scaffold/solana/solana-provider.tsx';
-// import { IconTrash } from '@tabler/icons-react';
+import { WalletButton } from '@/data/SolanaProvider.tsx';
 
 const NavbarContainer = styled.nav`
   display: flex;
@@ -39,14 +38,12 @@ const ThemeToggle = () => {
 
 const Logo = styled.img.attrs({ src: './favicon.svg' })``;
 
-export const Navbar: React.FC = () => {
-  return (
-    <NavbarContainer>
-      <Logo />
+export const Navbar: React.FC = () => (
+  <NavbarContainer>
+    <Logo />
 
-      {/*<ThemeToggle />*/}
+    <WalletButton />
 
-      {/*<Wallet>Connect Wallet</Wallet>*/}
-    </NavbarContainer>
-  );
-};
+    {/*<ThemeToggle />*/}
+  </NavbarContainer>
+);

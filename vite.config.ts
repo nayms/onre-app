@@ -8,23 +8,21 @@ import viteTsconfigPaths from 'vite-tsconfig-paths';
 export default defineConfig({
   build: {
     sourcemap: false,
-    // rollupOptions: {
-    //   output: {
-    //     manualChunks: {
-    //       coral: ['@coral-xyz/anchor'],
-    //       jotai: ['jotai'],
-    //       react: ['react', 'react-dom'],
-    //       reactHotToast: ['react-hot-toast'],
-    //       reactRouter: ['react-router'],
-    //       solanaWalletAdapters: [
-    //         '@solana/wallet-adapter-base',
-    //         '@solana/wallet-adapter-react',
-    //         '@solana/wallet-adapter-react-ui',
-    //       ],
-    //       tanstack: ['@tanstack/react-query'],
-    //     },
-    //   },
-    // },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          //       jotai: ['jotai'],
+          react: ['react', 'react-dom', 'react-router'],
+          //       reactHotToast: ['react-hot-toast'],
+          solanaWalletAdapters: [
+            '@solana/wallet-adapter-base',
+            '@solana/wallet-adapter-react',
+            '@solana/wallet-adapter-react-ui',
+          ],
+          //       tanstack: ['@tanstack/react-query'],
+        },
+      },
+    },
   },
   define: {
     global: 'globalThis',

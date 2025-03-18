@@ -122,3 +122,37 @@ export const Label = styled.label`
     vertical-align: -3px;
   }
 `;
+
+export const Button = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  width: 100%;
+  color: white;
+  background-color: #1b37f2;
+
+  &:not(:disabled) {
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 8px #293bba80;
+    }
+
+    &:focus-visible {
+    }
+
+    &:hover {
+      background-color: #293bba;
+    }
+  }
+
+  &:disabled {
+    background-color: #d8dbf9;
+    cursor: not-allowed;
+  }
+`;

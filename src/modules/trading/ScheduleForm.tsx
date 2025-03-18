@@ -1,17 +1,12 @@
 import React, { useState } from 'react';
 import { formatNumber } from '@/utils/number-formatting.ts';
-import {
-  BalanceSummary,
-  Button,
-  LinkControl,
-  TokenAmountGroup,
-  TokenAmountInput,
-  ValueDisplay,
-  ValueGroup,
-} from './Shared.tsx';
-import { TradeScheduleRedemptionModel } from './types.ts';
+import { BalanceSummary, LinkControl, TokenAmountGroup, ValueDisplay, ValueGroup } from './Shared.tsx';
+import { TokenAmountInput } from './TokenAmountInput.tsx';
 import { formatLocalShortDate } from '@/utils/format-date.ts';
 import { Column, Row } from '@/components/Layout.tsx';
+import { Button } from '@/components/Input.tsx';
+
+import type { TradeScheduleRedemptionModel } from './types.ts';
 
 type ScheduleFormProps = { data: TradeScheduleRedemptionModel };
 

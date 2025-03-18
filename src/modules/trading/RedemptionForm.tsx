@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
-import { Button, ValueGroup } from './Shared.tsx';
+import { ValueGroup } from './Shared.tsx';
 import { Table, TableCell, TableCellConfig, TableHeaderCell, TablePanelContainer } from '@/components/Table.tsx';
 import { formatNumber } from '@/utils/number-formatting.ts';
-import { Checkbox, Label, Toggle } from '@/components/Input.tsx';
+import { Button, Checkbox, Label, Toggle } from '@/components/Input.tsx';
 
 import type { TradeRedemptionModel } from '@/modules/trading/types.ts';
 

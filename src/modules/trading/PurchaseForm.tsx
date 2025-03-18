@@ -1,16 +1,10 @@
 import React, { useState } from 'react';
 import { formatNumber, formatPercent } from '@/utils/number-formatting.ts';
-import { TradePurchaseModel } from './types.ts';
-import {
-  BalanceSummary,
-  Button,
-  LinkControl,
-  TokenAmountGroup,
-  TokenAmountInput,
-  ValueDisplay,
-  ValueGroup,
-} from './Shared.tsx';
-import { Checkbox, Label } from '@/components/Input.tsx';
+import { Button, Checkbox, Label } from '@/components/Input.tsx';
+import { BalanceSummary, LinkControl, TokenAmountGroup, ValueDisplay, ValueGroup } from './Shared.tsx';
+import { TokenAmountInput } from './TokenAmountInput.tsx';
+
+import type { TradePurchaseModel } from './types.ts';
 
 type PurchaseFormProps = { data: TradePurchaseModel };
 

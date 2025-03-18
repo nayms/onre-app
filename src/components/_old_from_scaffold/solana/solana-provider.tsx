@@ -11,8 +11,6 @@ import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-r
 import { ReactNode, useCallback, useMemo } from 'react';
 import { useCluster } from '../cluster/cluster-data-access';
 
-// import('@solana/wallet-adapter-react-ui/styles.css')
-
 export const WalletButton = WalletMultiButton;
 
 export function SolanaProvider({ children }: { children: ReactNode }) {
