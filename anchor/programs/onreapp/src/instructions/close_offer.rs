@@ -1,30 +1,28 @@
 use crate::contexts::CloseOfferContext;
 use crate::state::{Offer, State};
 use anchor_lang::prelude::*;
-use anchor_lang::Accounts;
+use anchor_lang::{system_program, Accounts};
 use anchor_spl::token;
-use anchor_spl::token::{Token, TokenAccount, Transfer};
+use anchor_spl::token::{CloseAccount, Token, TokenAccount, Transfer};
 
 #[derive(Accounts)]
 pub struct CloseOfferOne<'info> {
     #[account(
         mut,
         close = boss
-    )]
+  )]
     pub offer: Account<'info, Offer>,
     #[account(
         mut,
         associated_token::mint = offer.sell_token_mint,
         associated_token::authority = offer_token_authority,
-        close = boss
-    )]
+  )]
     pub offer_sell_token_account: Account<'info, TokenAccount>,
     #[account(
         mut,
         associated_token::mint = offer.buy_token_mint_1,
         associated_token::authority = offer_token_authority,
-        close = boss
-    )]
+  )]
     pub offer_buy_1_token_account: Account<'info, TokenAccount>,
     #[account(mut)]
     pub boss_buy_1_token_account: Account<'info, TokenAccount>,
@@ -34,6 +32,7 @@ pub struct CloseOfferOne<'info> {
     #[account(has_one = boss)]
     pub state: Account<'info, State>,
     /// CHECK: This is a derived PDA, not storing data
+    #[account(seeds = [b"offer_authority", offer.offer_id.to_le_bytes().as_ref()], bump)]
     pub offer_token_authority: AccountInfo<'info>,
     pub boss: Signer<'info>,
     pub token_program: Program<'info, Token>,
@@ -41,6 +40,10 @@ pub struct CloseOfferOne<'info> {
 }
 
 pub fn close_offer_one(ctx: Context<CloseOfferOne>) -> Result<()> {
+    require!(
+        ctx.accounts.offer.buy_token_mint_2 == system_program::ID,
+        ErrorCode::InvalidCloseOffer
+    );
     let offer_sell_token_account = &ctx.accounts.offer_sell_token_account;
     let offer_buy_1_token_account = &ctx.accounts.offer_buy_1_token_account;
 
@@ -48,19 +51,49 @@ pub fn close_offer_one(ctx: Context<CloseOfferOne>) -> Result<()> {
     let boss_sell_token_account = &ctx.accounts.boss_sell_token_account;
     let boss_buy_1_token_account = &ctx.accounts.boss_buy_1_token_account;
 
-    transfer_remaining_tokens(
-        &ctx,
-        &offer_sell_token_account,
-        &boss_sell_token_account,
-    )?;
+    transfer_remaining_tokens(&ctx, &offer_sell_token_account, &boss_sell_token_account)?;
+    transfer_remaining_tokens(&ctx, &offer_buy_1_token_account, &boss_buy_1_token_account)?;
 
-    transfer_remaining_tokens(
-        &ctx,
-        &offer_buy_1_token_account,
-        &boss_buy_1_token_account,
-    )?;
+    let offer_id_bytes = &ctx.accounts.offer.offer_id.to_le_bytes();
 
+    let signer_seeds = &[
+        b"offer_authority".as_ref(),
+        offer_id_bytes.as_ref(),
+        &[ctx.accounts.offer.authority_bump],
+    ];
+    let signer_seeds_life_time = &[signer_seeds.as_ref()];
+    close_token_account(
+        ctx.accounts.offer_sell_token_account.clone(),
+        ctx.accounts.offer_token_authority.clone(),
+        ctx.accounts.boss.to_account_info(),
+        ctx.accounts.token_program.to_account_info(),
+        signer_seeds_life_time,
+    )?;
+    close_token_account(
+        ctx.accounts.offer_buy_1_token_account.clone(),
+        ctx.accounts.offer_token_authority.clone(),
+        ctx.accounts.boss.to_account_info(),
+        ctx.accounts.token_program.to_account_info(),
+        signer_seeds_life_time,
+    )?;
     Ok(())
+}
+
+pub fn close_token_account<'info>(
+    token_account: Account<'info, TokenAccount>,
+    authority: AccountInfo<'info>,
+    destination: AccountInfo<'info>,
+    token_program: AccountInfo<'info>,
+    signer_seeds: &[&[&[u8]]],
+) -> Result<()> {
+    let cpi_accounts = CloseAccount {
+        account: token_account.to_account_info(),
+        destination,
+        authority,
+    };
+
+    let cpi_ctx = CpiContext::new_with_signer(token_program, cpi_accounts, signer_seeds);
+    token::close_account(cpi_ctx)
 }
 
 #[derive(Accounts)]
@@ -68,37 +101,40 @@ pub struct CloseOfferTwo<'info> {
     #[account(
         mut,
         close = boss
-    )]
+  )]
     pub offer: Account<'info, Offer>,
     #[account(
         mut,
         associated_token::mint = offer.sell_token_mint,
         associated_token::authority = offer_token_authority,
         close = boss
-    )]
+  )]
     pub offer_sell_token_account: Account<'info, TokenAccount>,
     #[account(
         mut,
         associated_token::mint = offer.buy_token_mint_1,
         associated_token::authority = offer_token_authority,
         close = boss
-    )]
+  )]
     pub offer_buy_1_token_account: Account<'info, TokenAccount>,
     #[account(
         mut,
         associated_token::mint = offer.buy_token_mint_2,
         associated_token::authority = offer_token_authority,
         close = boss
-    )]
+  )]
     pub offer_buy_2_token_account: Account<'info, TokenAccount>,
     #[account(mut)]
     pub boss_buy_1_token_account: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub boss_buy_2_token_account: Account<'info, TokenAccount>,
     #[account(mut)]
     pub boss_sell_token_account: Account<'info, TokenAccount>,
 
     #[account(has_one = boss)]
     pub state: Account<'info, State>,
     /// CHECK: This is a derived PDA, not storing data
+    #[account(seeds = [b"offer_authority", offer.offer_id.to_le_bytes().as_ref()], bump)]
     pub offer_token_authority: AccountInfo<'info>,
     pub boss: Signer<'info>,
     pub token_program: Program<'info, Token>,
@@ -113,63 +149,54 @@ pub fn close_offer_two(ctx: Context<CloseOfferTwo>) -> Result<()> {
     // Get the boss's token accounts
     let boss_sell_token_account = &ctx.accounts.boss_sell_token_account;
     let boss_buy_1_token_account = &ctx.accounts.boss_buy_1_token_account;
-    let boss_buy_2_token_account = &ctx.accounts.boss_buy_1_token_account;
+    let boss_buy_2_token_account = &ctx.accounts.boss_buy_2_token_account;
 
-    transfer_remaining_tokens(
-        &ctx,
-        &offer_sell_token_account,
-        &boss_sell_token_account,
-    )?;
+    transfer_remaining_tokens(&ctx, &offer_sell_token_account, &boss_sell_token_account)?;
 
-    transfer_remaining_tokens(
-        &ctx,
-        &offer_buy_1_token_account,
-        &boss_buy_1_token_account,
-    )?;
+    transfer_remaining_tokens(&ctx, &offer_buy_1_token_account, &boss_buy_1_token_account)?;
 
-    transfer_remaining_tokens(
-        &ctx,
-        &offer_buy_2_token_account,
-        &boss_buy_2_token_account,
-    )?;
+    transfer_remaining_tokens(&ctx, &offer_buy_2_token_account, &boss_buy_2_token_account)?;
 
     Ok(())
 }
 
 impl<'info> CloseOfferContext<'info> for CloseOfferOne<'info> {
-  fn token_program(&self) -> &Program<'info, Token> {
-    &self.token_program
-  }
+    fn token_program(&self) -> &Program<'info, Token> {
+        &self.token_program
+    }
 
-  fn offer_token_authority(&self) -> &AccountInfo<'info> {
-    &self.offer_token_authority
-  }
+    fn offer_token_authority(&self) -> &AccountInfo<'info> {
+        &self.offer_token_authority
+    }
 
-  fn offer(&self) -> &Account<'info, Offer> {
-    &self.offer
-  }
+    fn offer(&self) -> &Account<'info, Offer> {
+        &self.offer
+    }
 }
 
 impl<'info> CloseOfferContext<'info> for CloseOfferTwo<'info> {
-  fn token_program(&self) -> &Program<'info, Token> {
-    &self.token_program
-  }
+    fn token_program(&self) -> &Program<'info, Token> {
+        &self.token_program
+    }
 
-  fn offer_token_authority(&self) -> &AccountInfo<'info> {
-    &self.offer_token_authority
-  }
+    fn offer_token_authority(&self) -> &AccountInfo<'info> {
+        &self.offer_token_authority
+    }
 
-  fn offer(&self) -> &Account<'info, Offer> {
-    &self.offer
-  }
+    fn offer(&self) -> &Account<'info, Offer> {
+        &self.offer
+    }
 }
 
 fn transfer_remaining_tokens<'info, T: CloseOfferContext<'info> + anchor_lang::Bumps>(
-  ctx: &Context<T>,
-  from_token_account: &Account<'info, TokenAccount>,
-  to_token_account: &Account<'info, TokenAccount>,
+    ctx: &Context<T>,
+    from_token_account: &Account<'info, TokenAccount>,
+    to_token_account: &Account<'info, TokenAccount>,
 ) -> Result<()> {
-
+    require!(
+        from_token_account.mint == to_token_account.mint,
+        ErrorCode::InvalidMint
+    );
     let balance = from_token_account.amount;
 
     if balance > 0 {
@@ -201,4 +228,12 @@ fn transfer_remaining_tokens<'info, T: CloseOfferContext<'info> + anchor_lang::B
     }
 
     Ok(())
+}
+
+#[error_code]
+pub enum ErrorCode {
+    #[msg("Invalid mint")]
+    InvalidMint,
+    #[msg("Invalid close offer")]
+    InvalidCloseOffer,
 }

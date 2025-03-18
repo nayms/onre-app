@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
-pub mod instructions;
 pub mod contexts;
+pub mod instructions;
 pub mod state;
 
 use instructions::*;
@@ -46,11 +46,19 @@ pub mod onre_app {
         close_offer::close_offer_one(ctx)
     }
 
+    pub fn close_offer_two(ctx: Context<CloseOfferTwo>) -> Result<()> {
+        close_offer::close_offer_two(ctx)
+    }
+
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         initialize::initialize(ctx)
     }
 
     pub fn set_boss(ctx: Context<SetBoss>, new_boss: Pubkey) -> Result<()> {
         set_boss::set_boss(ctx, new_boss)
+    }
+
+    pub fn take_offer_one(ctx: Context<TakeOfferOne>, sell_token_amount: u64) -> Result<()> {
+        take_offer::take_offer_one(ctx, sell_token_amount)
     }
 }
