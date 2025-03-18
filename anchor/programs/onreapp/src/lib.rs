@@ -61,4 +61,8 @@ pub mod onre_app {
     pub fn take_offer_one(ctx: Context<TakeOfferOne>, sell_token_amount: u64) -> Result<()> {
         take_offer::take_offer_one(ctx, sell_token_amount)
     }
+
+    pub fn take_offer_two(ctx: Context<TakeOfferTwo>, sell_token_amount: u64) -> Result<()> {
+        take_offer::take_offer_two(ctx, sell_token_amount)
+    }
 }
