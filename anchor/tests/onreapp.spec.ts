@@ -179,24 +179,16 @@ describe('onreapp', () => {
       buyToken1Mint,
     );
 
-    const buyToken2AccountInstruction = createAssociatedTokenAccountInstruction(
-      initialBoss.payer.publicKey,
-      getAssociatedTokenAddressSync(buyToken2Mint, offerAuthority, true),
-      offerAuthority,
-      buyToken2Mint,
-    );
 
     await program.methods
-      .makeOffer(offerId, new anchor.BN(500 * 10 ** 9), new anchor.BN(0), new anchor.BN(500 * 10 ** 9))
+      .makeOfferOne(offerId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
       .accounts({
         bossBuyToken1Account: bossBuyTokenAccount1,
-        bossBuyToken2Account: bossBuyTokenAccount2,
         sellTokenMint: sellTokenMint,
         buyToken1Mint: buyToken1Mint,
-        buyToken2Mint: buyToken2Mint,
         state: statePda,
       })
-      .preInstructions([buyToken2AccountInstruction, buyToken1AccountInstruction, offerSellTokenAccountInstruction])
+      .preInstructions([buyToken1AccountInstruction, offerSellTokenAccountInstruction])
       .rpc();
 
     // Fetch the offer account
@@ -216,60 +208,62 @@ describe('onreapp', () => {
     // Check balance of the offer sell token account
     const offerBuyTokenAccountInfo = await provider.connection.getTokenAccountBalance(offerBuyToken1Pda);
     expect(+offerBuyTokenAccountInfo.value.amount).toEqual(500 * 10 ** 9);
+
+    const offer = await program.account.offer.fetch(offerPda);
+    console.log(offer)
   });
-  // TODO: Fix all tests with 2nd buy token
-  //
-  // it('Make offer fails on boss account with non boss signature', async () => {
-  //   let newBoss = new anchor.Wallet(Keypair.generate());
-  //   let signature = await provider.connection.requestAirdrop(newBoss.publicKey, anchor.web3.LAMPORTS_PER_SOL * 20);
-  //   await provider.connection.confirmTransaction({
-  //     signature: signature,
-  //     ...(await provider.connection.getLatestBlockhash()),
-  //   });
-  //   await expect(program.methods
-  //     .makeOffer(offerId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
-  //     .accountsPartial({
-  //       bossSellTokenAccount: bossSellTokenAccount,
-  //       sellTokenMint: sellTokenMint,
-  //       buyTokenMint: buyTokenMint,
-  //       state: statePda,
-  //     })
-  //     .signers([newBoss.payer])
-  //     .rpc(),
-  //   ).rejects.toThrow();
-  // });
-  //
-  // it('Make offer fails on non boss account with boss signature', async () => {
-  //   let newBoss = new anchor.Wallet(Keypair.generate());
-  //   await expect(program.methods
-  //     .makeOffer(offerId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
-  //     .accountsPartial({
-  //       bossSellTokenAccount: bossSellTokenAccount,
-  //       sellTokenMint: sellTokenMint,
-  //       buyTokenMint: buyTokenMint,
-  //       state: statePda,
-  //       boss: newBoss.publicKey,
-  //     })
-  //     .signers([initialBoss.payer])
-  //     .rpc(),
-  //   ).rejects.toThrow();
-  // });
-  //
-  // it('Make offer fails on non boss account with non boss signature', async () => {
-  //   let newBoss = new anchor.Wallet(Keypair.generate());
-  //   await expect(program.methods
-  //     .makeOffer(offerId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
-  //     .accountsPartial({
-  //       bossSellTokenAccount: bossSellTokenAccount,
-  //       sellTokenMint: sellTokenMint,
-  //       buyTokenMint: buyTokenMint,
-  //       state: statePda,
-  //       boss: newBoss.publicKey,
-  //     })
-  //     .signers([newBoss.payer])
-  //     .rpc(),
-  //   ).rejects.toThrow();
-  // });
+
+  it('Make offer fails on boss account with non boss signature', async () => {
+    let newBoss = new anchor.Wallet(Keypair.generate());
+    let signature = await provider.connection.requestAirdrop(newBoss.publicKey, anchor.web3.LAMPORTS_PER_SOL * 20);
+    await provider.connection.confirmTransaction({
+      signature: signature,
+      ...(await provider.connection.getLatestBlockhash()),
+    });
+    await expect(program.methods
+      .makeOfferOne(offerId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
+      .accountsPartial({
+        bossBuyToken1Account: bossBuyTokenAccount1,
+        sellTokenMint: sellTokenMint,
+        buyToken1Mint: buyToken1Mint,
+        state: statePda,
+      })
+      .signers([newBoss.payer])
+      .rpc(),
+    ).rejects.toThrow();
+  });
+
+  it('Make offer fails on non boss account with boss signature', async () => {
+    let newBoss = new anchor.Wallet(Keypair.generate());
+    await expect(program.methods
+      .makeOfferOne(offerId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
+      .accountsPartial({
+        bossBuyToken1Account: bossBuyTokenAccount1,
+        sellTokenMint: sellTokenMint,
+        buyToken1Mint: buyToken1Mint,
+        state: statePda,
+        boss: newBoss.publicKey,
+      })
+      .signers([initialBoss.payer])
+      .rpc(),
+    ).rejects.toThrow();
+  });
+
+  it('Make offer fails on non boss account with non boss signature', async () => {
+    let newBoss = new anchor.Wallet(Keypair.generate());
+    await expect(program.methods
+      .makeOfferOne(offerId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
+      .accountsPartial({
+        bossBuyToken1Account: bossBuyTokenAccount1,
+        sellTokenMint: sellTokenMint,
+        buyToken1Mint: buyToken1Mint,
+        state: statePda,
+        boss: newBoss.publicKey,
+      })
+      .signers([newBoss.payer])
+      .rpc(),
+    ).rejects.toThrow();
+  });
   //
   // it('Replace an offer', async () => {
   //   const newOfferId = new anchor.BN(123123124);

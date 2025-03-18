@@ -11,14 +11,28 @@ declare_id!("J24jWEosQc5jgkdPm3YzNgzQ54CqNKkhzKy56XXJsLo2");
 pub mod onre_app {
     use super::*;
 
-    pub fn make_offer(
-        ctx: Context<MakeOffer>,
+    pub fn make_offer_one(
+        ctx: Context<MakeOfferOne>,
+        offer_id: u64,
+        buy_token_1_total_amount: u64,
+        sell_token_total_amount: u64,
+    ) -> Result<()> {
+        make_offer::make_offer_one(
+            ctx,
+            offer_id,
+            buy_token_1_total_amount,
+            sell_token_total_amount,
+        )
+    }
+
+    pub fn make_offer_two(
+        ctx: Context<MakeOfferTwo>,
         offer_id: u64,
         buy_token_1_total_amount: u64,
         buy_token_2_total_amount: u64,
         sell_token_total_amount: u64,
     ) -> Result<()> {
-        make_offer::make_offer(
+        make_offer::make_offer_two(
             ctx,
             offer_id,
             buy_token_1_total_amount,
