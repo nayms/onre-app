@@ -182,7 +182,6 @@ describe('onreapp', () => {
     await program.methods
       .makeOfferOne(offerId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
       .accounts({
-        bossBuyToken1Account: bossBuyTokenAccount1,
         sellTokenMint: sellTokenMint,
         buyToken1Mint: buyToken1Mint,
         state: statePda,
@@ -277,8 +276,6 @@ describe('onreapp', () => {
       .closeOfferOne()
       .accounts({
         offer: offerPda,
-        bossSellTokenAccount: bossSellTokenAccount,
-        bossBuy1TokenAccount: bossBuyTokenAccount1,
         state: statePda,
       })
       .instruction();
@@ -299,7 +296,6 @@ describe('onreapp', () => {
     let makeOfferInstruction = await program.methods
       .makeOfferOne(newOfferId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
       .accounts({
-        bossBuyToken1Account: bossBuyTokenAccount1,
         sellTokenMint: sellTokenMint,
         buyToken1Mint: buyToken1Mint,
         state: statePda,
@@ -392,8 +388,6 @@ describe('onreapp', () => {
     await program.methods
       .makeOfferTwo(offerId, new anchor.BN(100 * 10 ** 9), new anchor.BN(20 * 10 ** 9), new anchor.BN(240 * 10 ** 9))
       .accounts({
-        bossBuyToken1Account: bossBuyTokenAccount1,
-        bossBuyToken2Account: bossBuyTokenAccount2,
         sellTokenMint: sellTokenMint,
         buyToken1Mint: buyToken1Mint,
         buyToken2Mint: buyToken2Mint,
@@ -429,8 +423,6 @@ describe('onreapp', () => {
       .takeOfferTwo(new anchor.BN(120 * 10 ** 9))
       .accountsPartial({
         userSellTokenAccount: user1SellTokenAccount,
-        buyToken1Mint: buyToken1Mint,
-        buyToken2Mint: buyToken2Mint,
         offer: offerPda,
         user: user1.publicKey,
       })
@@ -513,8 +505,6 @@ describe('onreapp', () => {
       .takeOfferTwo(new anchor.BN(24 * 10 ** 9))
       .accountsPartial({
         userSellTokenAccount: user2SellTokenAccount,
-        buyToken1Mint: buyToken1Mint,
-        buyToken2Mint: buyToken2Mint,
         offer: offerPda,
         user: user2.publicKey,
       })

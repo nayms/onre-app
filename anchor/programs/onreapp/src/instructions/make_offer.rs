@@ -1,7 +1,7 @@
 use crate::contexts::MakeOfferContext;
 use crate::state::{Offer, State};
 use anchor_lang::prelude::*;
-use anchor_spl::associated_token::AssociatedToken;
+use anchor_lang::solana_program::system_program;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 
 #[derive(Accounts)]
@@ -35,7 +35,11 @@ pub struct MakeOfferOne<'info> {
     /// CHECK: This is a derived PDA, not storing data
     pub offer_token_authority: AccountInfo<'info>,
 
-    #[account(mut)]
+    #[account(
+      mut,
+      associated_token::mint = buy_token_1_mint,
+      associated_token::authority = boss,
+    )]
     pub boss_buy_token_1_account: Box<Account<'info, TokenAccount>>,
 
     pub sell_token_mint: Box<Account<'info, Mint>>,
@@ -48,7 +52,6 @@ pub struct MakeOfferOne<'info> {
 
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
-    pub associated_token_program: Program<'info, AssociatedToken>,
 }
 
 impl<'info> MakeOfferContext<'info> for MakeOfferOne<'info> {
@@ -112,13 +115,21 @@ pub struct MakeOfferTwo<'info> {
     #[account(
         seeds = [b"offer_authority", offer_id.to_le_bytes().as_ref()],
         bump
-  )]
+    )]
     /// CHECK:
     pub offer_token_authority: AccountInfo<'info>,
 
-    #[account(mut)]
+    #[account(
+      mut,
+      associated_token::mint = buy_token_1_mint,
+      associated_token::authority = boss,
+    )]
     pub boss_buy_token_1_account: Box<Account<'info, TokenAccount>>,
-    #[account(mut)]
+    #[account(
+      mut,
+      associated_token::mint = buy_token_2_mint,
+      associated_token::authority = boss,
+    )]
     pub boss_buy_token_2_account: Box<Account<'info, TokenAccount>>,
 
     pub sell_token_mint: Box<Account<'info, Mint>>,
@@ -132,7 +143,6 @@ pub struct MakeOfferTwo<'info> {
 
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
-    pub associated_token_program: Program<'info, AssociatedToken>,
 }
 
 pub fn make_offer_two(
@@ -142,6 +152,14 @@ pub fn make_offer_two(
     buy_token_2_total_amount: u64,
     sell_token_total_amount: u64,
 ) -> Result<()> {
+    require!(
+        ctx.accounts.boss_buy_token_1_account.amount >= buy_token_1_total_amount,
+        MakeOfferErrorCode::InsufficientBalance
+    );
+    require!(
+        ctx.accounts.boss_buy_token_2_account.amount >= buy_token_2_total_amount,
+        MakeOfferErrorCode::InsufficientBalance
+    );
     let offer = &mut ctx.accounts.offer;
     offer.offer_id = offer_id;
     offer.sell_token_mint = ctx.accounts.sell_token_mint.key();
@@ -165,6 +183,14 @@ pub fn make_offer_two(
         &ctx.accounts.offer_buy_token_2_account,
         buy_token_2_total_amount,
     )?;
+    msg!(
+        "Offer {} created by boss {}, buy_token_1: {}, buy_token_2: {}, sell_token: {}",
+        offer_id,
+        ctx.accounts.boss.key(),
+        buy_token_1_total_amount,
+        buy_token_2_total_amount,
+        sell_token_total_amount
+    );
     Ok(())
 }
 
@@ -174,6 +200,10 @@ pub fn make_offer_one(
     buy_token_1_total_amount: u64,
     sell_token_total_amount: u64,
 ) -> Result<()> {
+    require!(
+        ctx.accounts.boss_buy_token_1_account.amount >= buy_token_1_total_amount,
+        MakeOfferErrorCode::InsufficientBalance
+    );
     let offer = &mut ctx.accounts.offer;
     offer.offer_id = offer_id;
     offer.sell_token_mint = ctx.accounts.sell_token_mint.key();
@@ -181,6 +211,8 @@ pub fn make_offer_one(
     offer.buy_token_1_total_amount = buy_token_1_total_amount;
     offer.sell_token_total_amount = sell_token_total_amount;
     offer.authority_bump = ctx.bumps.offer_token_authority;
+    offer.buy_token_mint_2 = system_program::ID;
+    offer.buy_token_2_total_amount = 0;
 
     transfer_token(
         &ctx,
@@ -188,6 +220,13 @@ pub fn make_offer_one(
         &ctx.accounts.offer_buy_token_1_account,
         buy_token_1_total_amount,
     )?;
+    msg!(
+        "Offer {} created by boss {}, buy_token_1: {}, sell_token: {}",
+        offer_id,
+        ctx.accounts.boss.key(),
+        buy_token_1_total_amount,
+        sell_token_total_amount
+    );
     Ok(())
 }
 
@@ -197,16 +236,23 @@ fn transfer_token<'info, T: MakeOfferContext<'info> + anchor_lang::Bumps>(
     to: &Account<'info, TokenAccount>,
     amount: u64,
 ) -> Result<()> {
-    if amount > 0 {
-        let cpi_ctx = CpiContext::new(
-            ctx.accounts.token_program().to_account_info(),
-            Transfer {
-                from: from.to_account_info(),
-                to: to.to_account_info(),
-                authority: ctx.accounts.boss().to_account_info(),
-            },
-        );
-        token::transfer(cpi_ctx, amount)?;
-    }
+    require!(amount > 0, MakeOfferErrorCode::InvalidAmount);
+    let cpi_ctx = CpiContext::new(
+        ctx.accounts.token_program().to_account_info(),
+        Transfer {
+            from: from.to_account_info(),
+            to: to.to_account_info(),
+            authority: ctx.accounts.boss().to_account_info(),
+        },
+    );
+    token::transfer(cpi_ctx, amount)?;
     Ok(())
+}
+
+#[error_code]
+pub enum MakeOfferErrorCode {
+    #[msg("Insufficient token balance in boss account")]
+    InsufficientBalance,
+    #[msg("Token transfer amount must be greater than zero")]
+    InvalidAmount,
 }
