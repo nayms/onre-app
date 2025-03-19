@@ -77,9 +77,9 @@ describe('onreapp', () => {
     bossBuyTokenAccount1 = await createATA(provider, initialBoss.payer, buyToken1Mint, initialBoss.publicKey);
     bossBuyTokenAccount2 = await createATA(provider, initialBoss.payer, buyToken2Mint, initialBoss.publicKey);
 
-    await mintToAddress(provider, initialBoss.payer, sellTokenMint, bossSellTokenAccount, initialBoss.publicKey, 1000 * 10 ** 9);
-    await mintToAddress(provider, initialBoss.payer, buyToken1Mint, bossBuyTokenAccount1, initialBoss.publicKey, 1000 * 10 ** 9);
-    await mintToAddress(provider, initialBoss.payer, buyToken2Mint, bossBuyTokenAccount2, initialBoss.publicKey, 1000 * 10 ** 9);
+    await mintToAddress(provider, initialBoss.payer, sellTokenMint, bossSellTokenAccount, initialBoss.publicKey, 1000e9);
+    await mintToAddress(provider, initialBoss.payer, buyToken1Mint, bossBuyTokenAccount1, initialBoss.publicKey, 1000e9);
+    await mintToAddress(provider, initialBoss.payer, buyToken2Mint, bossBuyTokenAccount2, initialBoss.publicKey, 1000e9);
 
     [offerPda] = PublicKey.findProgramAddressSync([Buffer.from('offer'), offerId.toArrayLike(Buffer, 'le', 8)], program.programId);
     [statePda] = PublicKey.findProgramAddressSync([Buffer.from('state')], program.programId);
@@ -133,7 +133,7 @@ describe('onreapp', () => {
     );
 
     await program.methods
-      .makeOfferOne(offerId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
+      .makeOfferOne(offerId, new anchor.BN(500e9), new anchor.BN(500e9))
       .accounts({ sellTokenMint, buyToken1Mint, state: statePda })
       .preInstructions([buyToken1AccountInstruction, offerSellTokenAccountInstruction])
       .rpc();
@@ -142,14 +142,14 @@ describe('onreapp', () => {
     expect(offerAccount.offerId.eq(offerId)).toBe(true);
     expect(offerAccount.sellTokenMint.toBase58()).toEqual(sellTokenMint.toBase58());
     expect(offerAccount.buyTokenMint1.toBase58()).toEqual(buyToken1Mint.toBase58());
-    expect(offerAccount.sellTokenTotalAmount.eq(new anchor.BN(500 * 10 ** 9))).toBe(true);
-    expect(offerAccount.buyToken1TotalAmount.eq(new anchor.BN(500 * 10 ** 9))).toBe(true);
+    expect(offerAccount.sellTokenTotalAmount.eq(new anchor.BN(500e9))).toBe(true);
+    expect(offerAccount.buyToken1TotalAmount.eq(new anchor.BN(500e9))).toBe(true);
 
     const bossBuyTokenAccountInfo = await provider.connection.getTokenAccountBalance(bossBuyTokenAccount1);
-    expect(+bossBuyTokenAccountInfo.value.amount).toEqual(500 * 10 ** 9);
+    expect(+bossBuyTokenAccountInfo.value.amount).toEqual(500e9);
 
     const offerBuyTokenAccountInfo = await provider.connection.getTokenAccountBalance(offerBuyToken1Pda);
-    expect(+offerBuyTokenAccountInfo.value.amount).toEqual(500 * 10 ** 9);
+    expect(+offerBuyTokenAccountInfo.value.amount).toEqual(500e9);
   });
 
   it('Make offer fails on boss account with non boss signature', async () => {
@@ -157,7 +157,7 @@ describe('onreapp', () => {
     await airdropLamports(provider, newBoss.publicKey, anchor.web3.LAMPORTS_PER_SOL * 20);
     await expect(
       program.methods
-        .makeOfferOne(offerId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
+        .makeOfferOne(offerId, new anchor.BN(500e9), new anchor.BN(500e9))
         .accountsPartial({ bossBuyToken1Account: bossBuyTokenAccount1, sellTokenMint, buyToken1Mint, state: statePda })
         .signers([newBoss.payer])
         .rpc(),
@@ -168,7 +168,7 @@ describe('onreapp', () => {
     const newBoss = new anchor.Wallet(Keypair.generate());
     await expect(
       program.methods
-        .makeOfferOne(offerId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
+        .makeOfferOne(offerId, new anchor.BN(500e9), new anchor.BN(500e9))
         .accountsPartial({ bossBuyToken1Account: bossBuyTokenAccount1, sellTokenMint, buyToken1Mint, state: statePda, boss: newBoss.publicKey })
         .signers([initialBoss.payer])
         .rpc(),
@@ -179,7 +179,7 @@ describe('onreapp', () => {
     const newBoss = new anchor.Wallet(Keypair.generate());
     await expect(
       program.methods
-        .makeOfferOne(offerId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
+        .makeOfferOne(offerId, new anchor.BN(500e9), new anchor.BN(500e9))
         .accountsPartial({ bossBuyToken1Account: bossBuyTokenAccount1, sellTokenMint, buyToken1Mint, state: statePda, boss: newBoss.publicKey })
         .signers([newBoss.payer])
         .rpc(),
@@ -206,7 +206,7 @@ describe('onreapp', () => {
       buyToken1Mint,
     );
     const makeOfferInstruction = await program.methods
-      .makeOfferOne(newOfferId, new anchor.BN(500 * 10 ** 9), new anchor.BN(500 * 10 ** 9))
+      .makeOfferOne(newOfferId, new anchor.BN(500e9), new anchor.BN(500e9))
       .accounts({ sellTokenMint, buyToken1Mint, state: statePda })
       .instruction();
 
@@ -217,15 +217,15 @@ describe('onreapp', () => {
     expect(offerAccount.offerId.eq(newOfferId)).toBe(true);
     expect(offerAccount.sellTokenMint.toBase58()).toEqual(sellTokenMint.toBase58());
     expect(offerAccount.buyTokenMint1.toBase58()).toEqual(buyToken1Mint.toBase58());
-    expect(offerAccount.sellTokenTotalAmount.eq(new anchor.BN(500 * 10 ** 9))).toBe(true);
-    expect(offerAccount.buyToken1TotalAmount.eq(new anchor.BN(500 * 10 ** 9))).toBe(true);
+    expect(offerAccount.sellTokenTotalAmount.eq(new anchor.BN(500e9))).toBe(true);
+    expect(offerAccount.buyToken1TotalAmount.eq(new anchor.BN(500e9))).toBe(true);
 
     const bossSellTokenAccountInfo = await provider.connection.getTokenAccountBalance(bossSellTokenAccount);
     const offerSellTokenAccountInfo = await provider.connection.getTokenAccountBalance(newOfferSellTokenPda);
     const offerBuyToken1AccountInfo = await provider.connection.getTokenAccountBalance(newOfferBuyTokenPda);
-    expect(+bossSellTokenAccountInfo.value.amount).toEqual(1000 * 10 ** 9);
+    expect(+bossSellTokenAccountInfo.value.amount).toEqual(1000e9);
     expect(+offerSellTokenAccountInfo.value.amount).toEqual(0);
-    expect(+offerBuyToken1AccountInfo.value.amount).toEqual(500 * 10 ** 9);
+    expect(+offerBuyToken1AccountInfo.value.amount).toEqual(500e9);
   });
 
   it('Create and take offer', async () => {
@@ -256,7 +256,7 @@ describe('onreapp', () => {
     );
 
     await program.methods
-      .makeOfferTwo(offerId, new anchor.BN(100 * 10 ** 9), new anchor.BN(20 * 10 ** 9), new anchor.BN(240 * 10 ** 9))
+      .makeOfferTwo(offerId, new anchor.BN(100e9), new anchor.BN(20e9), new anchor.BN(240e9))
       .accounts({ sellTokenMint, buyToken1Mint, buyToken2Mint, state: statePda })
       .preInstructions([offerSellTokenAccountInstruction, offerBuyToken1AccountInstruction, offerBuyToken2AccountInstruction])
       .rpc();
@@ -264,10 +264,10 @@ describe('onreapp', () => {
     const user1 = new anchor.Wallet(Keypair.generate());
     await airdropLamports(provider, user1.publicKey, anchor.web3.LAMPORTS_PER_SOL * 20);
     const user1SellTokenAccount = await createATA(provider, user1.payer, sellTokenMint, user1.publicKey);
-    await mintToAddress(provider, initialBoss.payer, sellTokenMint, user1SellTokenAccount, initialBoss.publicKey, 1000 * 10 ** 9);
+    await mintToAddress(provider, initialBoss.payer, sellTokenMint, user1SellTokenAccount, initialBoss.publicKey, 1000e9);
 
     const takeOfferInstruction = await program.methods
-      .takeOfferTwo(new anchor.BN(120 * 10 ** 9))
+      .takeOfferTwo(new anchor.BN(120e9))
       .accountsPartial({ userSellTokenAccount: user1SellTokenAccount, offer: offerPda, user: user1.publicKey })
       .instruction();
     const createUser1BuyToken1AccountInstruction = createAssociatedTokenAccountInstruction(
@@ -288,14 +288,14 @@ describe('onreapp', () => {
     const offerBuyToken1Info = await provider.connection.getTokenAccountBalance(offerBuyToken1Pda);
     const offerBuyToken2Info = await provider.connection.getTokenAccountBalance(offerBuyToken2Pda);
     const offerSellTokenInfo = await provider.connection.getTokenAccountBalance(offerSellTokenPda);
-    expect(+offerBuyToken1Info.value.amount).toEqual(50 * 10 ** 9);
-    expect(+offerBuyToken2Info.value.amount).toEqual(10 * 10 ** 9);
-    expect(+offerSellTokenInfo.value.amount).toEqual(120 * 10 ** 9);
+    expect(+offerBuyToken1Info.value.amount).toEqual(50e9);
+    expect(+offerBuyToken2Info.value.amount).toEqual(10e9);
+    expect(+offerSellTokenInfo.value.amount).toEqual(120e9);
 
     const user2 = new anchor.Wallet(Keypair.generate());
     await airdropLamports(provider, user2.publicKey, anchor.web3.LAMPORTS_PER_SOL * 20);
     const user2SellTokenAccount = await createATA(provider, user2.payer, sellTokenMint, user2.publicKey);
-    await mintToAddress(provider, initialBoss.payer, sellTokenMint, user2SellTokenAccount, initialBoss.publicKey, 1000 * 10 ** 9);
+    await mintToAddress(provider, initialBoss.payer, sellTokenMint, user2SellTokenAccount, initialBoss.publicKey, 1000e9);
 
     const createUser2BuyToken1AccountInstruction = createAssociatedTokenAccountInstruction(
       user2.payer.publicKey,
@@ -310,7 +310,7 @@ describe('onreapp', () => {
       buyToken2Mint,
     );
     const takeOfferInstruction2 = await program.methods
-      .takeOfferTwo(new anchor.BN(24 * 10 ** 9))
+      .takeOfferTwo(new anchor.BN(24e9))
       .accountsPartial({ userSellTokenAccount: user2SellTokenAccount, offer: offerPda, user: user2.publicKey })
       .instruction();
 
@@ -319,9 +319,9 @@ describe('onreapp', () => {
     const offerBuyToken1Info2 = await provider.connection.getTokenAccountBalance(offerBuyToken1Pda);
     const offerBuyToken2Info2 = await provider.connection.getTokenAccountBalance(offerBuyToken2Pda);
     const offerSellTokenInfo2 = await provider.connection.getTokenAccountBalance(offerSellTokenPda);
-    expect(+offerSellTokenInfo2.value.amount).toEqual(144 * 10 ** 9);
-    expect(+offerBuyToken1Info2.value.amount).toEqual(40 * 10 ** 9);
-    expect(+offerBuyToken2Info2.value.amount).toEqual(8 * 10 ** 9);
+    expect(+offerSellTokenInfo2.value.amount).toEqual(144e9);
+    expect(+offerBuyToken1Info2.value.amount).toEqual(40e9);
+    expect(+offerBuyToken2Info2.value.amount).toEqual(8e9);
   });
 
   it('Takes an offer with one buy token successfully', async () => {
@@ -345,7 +345,7 @@ describe('onreapp', () => {
     );
 
     await program.methods
-      .makeOfferOne(offerId, new anchor.BN(100 * 10 ** 9), new anchor.BN(200 * 10 ** 9))
+      .makeOfferOne(offerId, new anchor.BN(100e9), new anchor.BN(200e9))
       .accounts({ sellTokenMint, buyToken1Mint, state: statePda })
       .preInstructions([offerSellTokenAccountInstruction, offerBuyToken1AccountInstruction])
       .rpc();
@@ -353,7 +353,7 @@ describe('onreapp', () => {
     const user = new anchor.Wallet(Keypair.generate());
     await airdropLamports(provider, user.publicKey, anchor.web3.LAMPORTS_PER_SOL * 20);
     const userSellTokenAccount = await createATA(provider, user.payer, sellTokenMint, user.publicKey);
-    await mintToAddress(provider, initialBoss.payer, sellTokenMint, userSellTokenAccount, initialBoss.publicKey, 100 * 10 ** 9);
+    await mintToAddress(provider, initialBoss.payer, sellTokenMint, userSellTokenAccount, initialBoss.publicKey, 100e9);
 
     const createUserBuyToken1AccountInstruction = createAssociatedTokenAccountInstruction(
       user.payer.publicKey,
@@ -362,7 +362,7 @@ describe('onreapp', () => {
       buyToken1Mint,
     );
     const takeOfferInstruction = await program.methods
-      .takeOfferOne(new anchor.BN(50 * 10 ** 9))
+      .takeOfferOne(new anchor.BN(50e9))
       .accountsPartial({
         offer: offerPda,
         offerSellTokenAccount: offerSellTokenPda,
@@ -380,10 +380,10 @@ describe('onreapp', () => {
     const offerBuyToken1Info = await provider.connection.getTokenAccountBalance(offerBuyToken1Pda);
     const userSellTokenInfo = await provider.connection.getTokenAccountBalance(userSellTokenAccount);
     const userBuyToken1Info = await provider.connection.getTokenAccountBalance(getAssociatedTokenAddressSync(buyToken1Mint, user.publicKey, true));
-    expect(+offerSellTokenInfo.value.amount).toEqual(50 * 10 ** 9);
-    expect(+offerBuyToken1Info.value.amount).toEqual(75 * 10 ** 9);
-    expect(+userSellTokenInfo.value.amount).toEqual(50 * 10 ** 9);
-    expect(+userBuyToken1Info.value.amount).toEqual(25 * 10 ** 9);
+    expect(+offerSellTokenInfo.value.amount).toEqual(50e9);
+    expect(+offerBuyToken1Info.value.amount).toEqual(75e9);
+    expect(+userSellTokenInfo.value.amount).toEqual(50e9);
+    expect(+userBuyToken1Info.value.amount).toEqual(25e9);
   });
 
   it('Fails to take offer with one buy token due to exceeding sell limit', async () => {
@@ -394,7 +394,7 @@ describe('onreapp', () => {
     const offerBuyToken1Pda = await getAssociatedTokenAddress(buyToken1Mint, offerAuthority, true);
 
     await program.methods
-      .makeOfferOne(offerId, new anchor.BN(100 * 10 ** 9), new anchor.BN(50 * 10 ** 9))
+      .makeOfferOne(offerId, new anchor.BN(100e9), new anchor.BN(50e9))
       .accounts({ sellTokenMint, buyToken1Mint, state: statePda })
       .preInstructions([
         createAssociatedTokenAccountInstruction(initialBoss.payer.publicKey, offerSellTokenPda, offerAuthority, sellTokenMint),
@@ -405,7 +405,7 @@ describe('onreapp', () => {
     const user = new anchor.Wallet(Keypair.generate());
     await airdropLamports(provider, user.publicKey, anchor.web3.LAMPORTS_PER_SOL * 20);
     const userSellTokenAccount = await createATA(provider, user.payer, sellTokenMint, user.publicKey);
-    await mintToAddress(provider, initialBoss.payer, sellTokenMint, userSellTokenAccount, initialBoss.publicKey, 100 * 10 ** 9);
+    await mintToAddress(provider, initialBoss.payer, sellTokenMint, userSellTokenAccount, initialBoss.publicKey, 100e9);
 
     const createUserBuyToken1AccountInstruction = createAssociatedTokenAccountInstruction(
       user.payer.publicKey,
@@ -414,7 +414,7 @@ describe('onreapp', () => {
       buyToken1Mint,
     );
     const takeOfferInstruction = await program.methods
-      .takeOfferOne(new anchor.BN(75 * 10 ** 9))
+      .takeOfferOne(new anchor.BN(75e9))
       .accountsPartial({
         offer: offerPda,
         offerSellTokenAccount: offerSellTokenPda,
@@ -449,7 +449,7 @@ describe('onreapp', () => {
     const offerBuyToken1Pda = await getAssociatedTokenAddress(buyToken1Mint, offerAuthority, true);
 
     await program.methods
-      .makeOfferOne(offerId, new anchor.BN(100 * 10 ** 9), new anchor.BN(200 * 10 ** 9))
+      .makeOfferOne(offerId, new anchor.BN(100e9), new anchor.BN(200e9))
       .accounts({ sellTokenMint, buyToken1Mint, state: statePda })
       .preInstructions([
         createAssociatedTokenAccountInstruction(initialBoss.payer.publicKey, offerSellTokenPda, offerAuthority, sellTokenMint),
@@ -461,10 +461,10 @@ describe('onreapp', () => {
     await airdropLamports(provider, user.publicKey, anchor.web3.LAMPORTS_PER_SOL * 20);
     const userSellTokenAccount = await createATA(provider, user.payer, sellTokenMint, user.publicKey);
     const userBuyToken1Account = await createATA(provider, user.payer, buyToken2Mint, user.publicKey); // Wrong mint
-    await mintToAddress(provider, initialBoss.payer, sellTokenMint, userSellTokenAccount, initialBoss.publicKey, 100 * 10 ** 9);
+    await mintToAddress(provider, initialBoss.payer, sellTokenMint, userSellTokenAccount, initialBoss.publicKey, 100e9);
 
     const takeOfferInstruction = await program.methods
-      .takeOfferOne(new anchor.BN(50 * 10 ** 9))
+      .takeOfferOne(new anchor.BN(50e9))
       .accountsPartial({
         offer: offerPda,
         offerSellTokenAccount: offerSellTokenPda,
