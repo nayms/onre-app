@@ -1207,6 +1207,13 @@ export type OnreApp = {
       "accounts": [
         {
           "name": "offer",
+          "docs": [
+            "The offer account to be initialized, with rent paid by `boss`.",
+            "",
+            "# Note",
+            "- Space is allocated as `8 + Offer::SIZE` bytes, where 8 bytes are for the discriminator.",
+            "- Seeded with `\"offer\"` and `offer_id` for PDA derivation."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -1229,6 +1236,12 @@ export type OnreApp = {
         },
         {
           "name": "offerSellTokenAccount",
+          "docs": [
+            "Offer's sell token ATA, must exist prior to execution, controlled by `offer_token_authority`.",
+            "",
+            "# Note",
+            "Included for future sell token transfers when the offer is taken."
+          ],
           "pda": {
             "seeds": [
               {
@@ -1318,6 +1331,9 @@ export type OnreApp = {
         },
         {
           "name": "offerBuyToken1Account",
+          "docs": [
+            "Offer's buy token 1 ATA, must exist prior to execution, controlled by `offer_token_authority`."
+          ],
           "pda": {
             "seeds": [
               {
@@ -1407,6 +1423,12 @@ export type OnreApp = {
         },
         {
           "name": "offerTokenAuthority",
+          "docs": [
+            "Derived PDA for token authority, does not store data.",
+            "",
+            "# Note",
+            "This account is marked with `CHECK` as it’s validated by the seed derivation."
+          ],
           "pda": {
             "seeds": [
               {
@@ -1438,6 +1460,9 @@ export type OnreApp = {
         },
         {
           "name": "bossBuyToken1Account",
+          "docs": [
+            "Boss's buy token 1 ATA, must exist prior to execution, owned by `boss`."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -1527,16 +1552,28 @@ export type OnreApp = {
           }
         },
         {
-          "name": "sellTokenMint"
+          "name": "sellTokenMint",
+          "docs": [
+            "Mint of the sell token for the offer."
+          ]
         },
         {
-          "name": "buyToken1Mint"
+          "name": "buyToken1Mint",
+          "docs": [
+            "Mint of the buy token 1 for the offer."
+          ]
         },
         {
-          "name": "state"
+          "name": "state",
+          "docs": [
+            "Program state, ensures `boss` is authorized."
+          ]
         },
         {
           "name": "boss",
+          "docs": [
+            "The signer funding and authorizing the offer creation, typically the boss."
+          ],
           "writable": true,
           "signer": true,
           "relations": [
@@ -1545,10 +1582,16 @@ export type OnreApp = {
         },
         {
           "name": "tokenProgram",
+          "docs": [
+            "SPL Token program for token operations."
+          ],
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
           "name": "systemProgram",
+          "docs": [
+            "Solana System program for account creation and rent payment."
+          ],
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -1582,6 +1625,13 @@ export type OnreApp = {
       "accounts": [
         {
           "name": "offer",
+          "docs": [
+            "The offer account to be initialized, with rent paid by `boss`.",
+            "",
+            "# Note",
+            "- Space is allocated as `8 + Offer::SIZE` bytes, where 8 bytes are for the discriminator.",
+            "- Seeded with `\"offer\"` and `offer_id` for PDA derivation."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -1604,6 +1654,12 @@ export type OnreApp = {
         },
         {
           "name": "offerSellTokenAccount",
+          "docs": [
+            "Offer's sell token ATA, must exist prior to execution, controlled by `offer_token_authority`.",
+            "",
+            "# Note",
+            "Included for future sell token transfers when the offer is taken."
+          ],
           "pda": {
             "seeds": [
               {
@@ -1693,6 +1749,9 @@ export type OnreApp = {
         },
         {
           "name": "offerBuyToken1Account",
+          "docs": [
+            "Offer's buy token 1 ATA, must exist prior to execution, controlled by `offer_token_authority`."
+          ],
           "pda": {
             "seeds": [
               {
@@ -1782,6 +1841,9 @@ export type OnreApp = {
         },
         {
           "name": "offerBuyToken2Account",
+          "docs": [
+            "Offer's buy token 2 ATA, must exist prior to execution, controlled by `offer_token_authority`."
+          ],
           "pda": {
             "seeds": [
               {
@@ -1871,6 +1933,12 @@ export type OnreApp = {
         },
         {
           "name": "offerTokenAuthority",
+          "docs": [
+            "Derived PDA for token authority, does not store data.",
+            "",
+            "# Note",
+            "This account is marked with `CHECK` as it’s validated by the seed derivation."
+          ],
           "pda": {
             "seeds": [
               {
@@ -1902,6 +1970,9 @@ export type OnreApp = {
         },
         {
           "name": "bossBuyToken1Account",
+          "docs": [
+            "Boss's buy token 1 ATA, must exist prior to execution, owned by `boss`."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -1992,6 +2063,9 @@ export type OnreApp = {
         },
         {
           "name": "bossBuyToken2Account",
+          "docs": [
+            "Boss's buy token 2 ATA, must exist prior to execution, owned by `boss`."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -2081,19 +2155,34 @@ export type OnreApp = {
           }
         },
         {
-          "name": "sellTokenMint"
+          "name": "sellTokenMint",
+          "docs": [
+            "Mint of the sell token for the offer."
+          ]
         },
         {
-          "name": "buyToken1Mint"
+          "name": "buyToken1Mint",
+          "docs": [
+            "Mint of the buy token 1 for the offer."
+          ]
         },
         {
-          "name": "buyToken2Mint"
+          "name": "buyToken2Mint",
+          "docs": [
+            "Mint of the buy token 2 for the offer."
+          ]
         },
         {
-          "name": "state"
+          "name": "state",
+          "docs": [
+            "Program state, ensures `boss` is authorized."
+          ]
         },
         {
           "name": "boss",
+          "docs": [
+            "The signer funding and authorizing the offer creation, typically the boss."
+          ],
           "writable": true,
           "signer": true,
           "relations": [
@@ -2102,10 +2191,16 @@ export type OnreApp = {
         },
         {
           "name": "tokenProgram",
+          "docs": [
+            "SPL Token program for token operations."
+          ],
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
           "name": "systemProgram",
+          "docs": [
+            "Solana System program for account creation and rent payment."
+          ],
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -2143,10 +2238,20 @@ export type OnreApp = {
       "accounts": [
         {
           "name": "state",
+          "docs": [
+            "The program state account, containing the current boss to be updated.",
+            "",
+            "# Constraints",
+            "- Must be mutable to allow updating the `boss` field.",
+            "- The `has_one = boss` constraint ensures only the current boss can modify it."
+          ],
           "writable": true
         },
         {
           "name": "boss",
+          "docs": [
+            "The current boss, signing the transaction to authorize the update."
+          ],
           "writable": true,
           "signer": true,
           "relations": [
@@ -2155,6 +2260,9 @@ export type OnreApp = {
         },
         {
           "name": "systemProgram",
+          "docs": [
+            "Solana System program, included for potential rent accounting."
+          ],
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -3158,33 +3266,13 @@ export type OnreApp = {
   "errors": [
     {
       "code": 6000,
-      "name": "insufficientOfferBalance",
-      "msg": "Insufficient tokens remaining in the offer."
+      "name": "insufficientBalance",
+      "msg": "Insufficient token balance in boss account"
     },
     {
       "code": 6001,
-      "name": "invalidSellTokenMint",
-      "msg": "The sell token mint does not match the offer."
-    },
-    {
-      "code": 6002,
-      "name": "invalidBuyTokenMint",
-      "msg": "The buy token mint does not match the offer."
-    },
-    {
-      "code": 6003,
-      "name": "offerExceedsSellLimit",
-      "msg": "The offer would exceed its total sell token limit."
-    },
-    {
-      "code": 6004,
-      "name": "invalidTakeOffer",
-      "msg": "The offer is of 2 buy token type."
-    },
-    {
-      "code": 6005,
-      "name": "calculationOverflow",
-      "msg": "Calculation overflowed or invalid."
+      "name": "invalidAmount",
+      "msg": "Token transfer amount must be greater than zero"
     }
   ],
   "types": [
