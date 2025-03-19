@@ -22,10 +22,16 @@
       "accounts": [
         {
           "name": "offer",
+          "docs": [
+            "The offer account to be closed, with rent refunded to `boss`."
+          ],
           "writable": true
         },
         {
           "name": "offer_sell_token_account",
+          "docs": [
+            "Offer's sell token ATA, must exist prior to execution, controlled by `offer_token_authority`."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -117,6 +123,9 @@
         },
         {
           "name": "offer_buy_1_token_account",
+          "docs": [
+            "Offer's buy token 1 ATA, must exist prior to execution, controlled by `offer_token_authority`."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -208,6 +217,9 @@
         },
         {
           "name": "boss_buy_1_token_account",
+          "docs": [
+            "Boss's buy token 1 ATA, must exist prior to execution, owned by `boss`."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -299,6 +311,9 @@
         },
         {
           "name": "boss_sell_token_account",
+          "docs": [
+            "Boss's sell token ATA, must exist prior to execution, owned by `boss`."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -389,10 +404,19 @@
           }
         },
         {
-          "name": "state"
+          "name": "state",
+          "docs": [
+            "Program state, ensures `boss` is authorized."
+          ]
         },
         {
           "name": "offer_token_authority",
+          "docs": [
+            "Derived PDA for token authority, does not store data.",
+            "",
+            "# Note",
+            "This account is marked with `CHECK` as it’s validated by the seed derivation."
+          ],
           "pda": {
             "seeds": [
               {
@@ -425,6 +449,9 @@
         },
         {
           "name": "boss",
+          "docs": [
+            "The signer authorizing the closure, typically the boss."
+          ],
           "writable": true,
           "signer": true,
           "relations": [
@@ -433,10 +460,16 @@
         },
         {
           "name": "token_program",
+          "docs": [
+            "SPL Token program for token operations."
+          ],
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
           "name": "system_program",
+          "docs": [
+            "Solana System program for account operations."
+          ],
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -457,10 +490,16 @@
       "accounts": [
         {
           "name": "offer",
+          "docs": [
+            "The offer account to be closed, with rent refunded to `boss`."
+          ],
           "writable": true
         },
         {
           "name": "offer_sell_token_account",
+          "docs": [
+            "Offer's sell token ATA, must exist prior to execution, controlled by `offer_token_authority`."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -552,6 +591,9 @@
         },
         {
           "name": "offer_buy_1_token_account",
+          "docs": [
+            "Offer's buy token 1 ATA, must exist prior to execution, controlled by `offer_token_authority`."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -643,6 +685,9 @@
         },
         {
           "name": "offer_buy_2_token_account",
+          "docs": [
+            "Offer's buy token 2 ATA, must exist prior to execution, controlled by `offer_token_authority`."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -734,6 +779,9 @@
         },
         {
           "name": "boss_buy_1_token_account",
+          "docs": [
+            "Boss's buy token 1 ATA, must exist prior to execution, owned by `boss`."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -825,6 +873,9 @@
         },
         {
           "name": "boss_buy_2_token_account",
+          "docs": [
+            "Boss's buy token 2 ATA, must exist prior to execution, owned by `boss`."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -916,6 +967,9 @@
         },
         {
           "name": "boss_sell_token_account",
+          "docs": [
+            "Boss's sell token ATA, must exist prior to execution, owned by `boss`."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -1006,10 +1060,19 @@
           }
         },
         {
-          "name": "state"
+          "name": "state",
+          "docs": [
+            "Program state, ensures `boss` is authorized."
+          ]
         },
         {
           "name": "offer_token_authority",
+          "docs": [
+            "Derived PDA for token authority, does not store data.",
+            "",
+            "# Note",
+            "This account is marked with `CHECK` as it’s validated by the seed derivation."
+          ],
           "pda": {
             "seeds": [
               {
@@ -1042,6 +1105,9 @@
         },
         {
           "name": "boss",
+          "docs": [
+            "The signer authorizing the closure, typically the boss."
+          ],
           "signer": true,
           "relations": [
             "state"
@@ -1049,10 +1115,16 @@
         },
         {
           "name": "token_program",
+          "docs": [
+            "SPL Token program for token operations."
+          ],
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
           "name": "system_program",
+          "docs": [
+            "Solana System program for account operations."
+          ],
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -1073,6 +1145,13 @@
       "accounts": [
         {
           "name": "state",
+          "docs": [
+            "The program state account, initialized with the boss’s public key.",
+            "",
+            "# Note",
+            "- Space is allocated as `8 + State::SIZE` bytes, where 8 bytes are for the discriminator.",
+            "- Seeded with `\"state\"` and a bump for PDA derivation."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -1091,11 +1170,17 @@
         },
         {
           "name": "boss",
+          "docs": [
+            "The signer funding and authorizing the state initialization, becomes the boss."
+          ],
           "writable": true,
           "signer": true
         },
         {
           "name": "system_program",
+          "docs": [
+            "Solana System program for account creation and rent payment."
+          ],
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -3067,13 +3152,33 @@
   "errors": [
     {
       "code": 6000,
-      "name": "InvalidMint",
-      "msg": "Invalid mint"
+      "name": "InsufficientOfferBalance",
+      "msg": "Insufficient tokens remaining in the offer."
     },
     {
       "code": 6001,
-      "name": "InvalidCloseOffer",
-      "msg": "Invalid close offer"
+      "name": "InvalidSellTokenMint",
+      "msg": "The sell token mint does not match the offer."
+    },
+    {
+      "code": 6002,
+      "name": "InvalidBuyTokenMint",
+      "msg": "The buy token mint does not match the offer."
+    },
+    {
+      "code": 6003,
+      "name": "OfferExceedsSellLimit",
+      "msg": "The offer would exceed its total sell token limit."
+    },
+    {
+      "code": 6004,
+      "name": "InvalidTakeOffer",
+      "msg": "The offer is of 2 buy token type."
+    },
+    {
+      "code": 6005,
+      "name": "CalculationOverflow",
+      "msg": "Calculation overflowed or invalid."
     }
   ],
   "types": [
