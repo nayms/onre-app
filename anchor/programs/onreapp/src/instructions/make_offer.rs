@@ -1,8 +1,27 @@
 use crate::contexts::MakeOfferContext;
 use crate::state::{Offer, State};
-use anchor_lang::prelude::*;
+use anchor_lang::prelude::*; // Includes `emit!` and `#[event]`
 use anchor_lang::solana_program::system_program;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
+
+/// Event emitted when an offer with one buy token is created.
+#[event]
+pub struct OfferMadeOne {
+    pub offer_id: u64,
+    pub boss: Pubkey,
+    pub buy_token_1_total_amount: u64,
+    pub sell_token_total_amount: u64,
+}
+
+/// Event emitted when an offer with two buy tokens is created.
+#[event]
+pub struct OfferMadeTwo {
+    pub offer_id: u64,
+    pub boss: Pubkey,
+    pub buy_token_1_total_amount: u64,
+    pub buy_token_2_total_amount: u64,
+    pub sell_token_total_amount: u64,
+}
 
 /// Account structure for creating an offer with one buy token.
 ///
@@ -26,7 +45,7 @@ pub struct MakeOfferOne<'info> {
         space = 8 + Offer::SIZE,
         seeds = [b"offer", offer_id.to_le_bytes().as_ref()],
         bump
-    )]
+  )]
     pub offer: Account<'info, Offer>,
 
     /// Offer's sell token ATA, must exist prior to execution, controlled by `offer_token_authority`.
@@ -36,14 +55,14 @@ pub struct MakeOfferOne<'info> {
     #[account(
         associated_token::mint = sell_token_mint,
         associated_token::authority = offer_token_authority,
-    )]
+  )]
     pub offer_sell_token_account: Account<'info, TokenAccount>,
 
     /// Offer's buy token 1 ATA, must exist prior to execution, controlled by `offer_token_authority`.
     #[account(
         associated_token::mint = buy_token_1_mint,
         associated_token::authority = offer_token_authority,
-    )]
+  )]
     pub offer_buy_token_1_account: Account<'info, TokenAccount>,
 
     /// Derived PDA for token authority, does not store data.
@@ -53,7 +72,7 @@ pub struct MakeOfferOne<'info> {
     #[account(
         seeds = [b"offer_authority", offer_id.to_le_bytes().as_ref()],
         bump
-    )]
+  )]
     pub offer_token_authority: AccountInfo<'info>,
 
     /// Boss's buy token 1 ATA, must exist prior to execution, owned by `boss`.
@@ -61,7 +80,7 @@ pub struct MakeOfferOne<'info> {
         mut,
         associated_token::mint = buy_token_1_mint,
         associated_token::authority = boss,
-    )]
+  )]
     pub boss_buy_token_1_account: Box<Account<'info, TokenAccount>>,
 
     /// Mint of the sell token for the offer.
@@ -138,7 +157,7 @@ pub struct MakeOfferTwo<'info> {
         space = 8 + Offer::SIZE,
         seeds = [b"offer", offer_id.to_le_bytes().as_ref()],
         bump
-    )]
+  )]
     pub offer: Account<'info, Offer>,
 
     /// Offer's sell token ATA, must exist prior to execution, controlled by `offer_token_authority`.
@@ -148,21 +167,21 @@ pub struct MakeOfferTwo<'info> {
     #[account(
         associated_token::mint = sell_token_mint,
         associated_token::authority = offer_token_authority,
-    )]
+  )]
     pub offer_sell_token_account: Account<'info, TokenAccount>,
 
     /// Offer's buy token 1 ATA, must exist prior to execution, controlled by `offer_token_authority`.
     #[account(
         associated_token::mint = buy_token_1_mint,
         associated_token::authority = offer_token_authority,
-    )]
+  )]
     pub offer_buy_token_1_account: Account<'info, TokenAccount>,
 
     /// Offer's buy token 2 ATA, must exist prior to execution, controlled by `offer_token_authority`.
     #[account(
         associated_token::mint = buy_token_2_mint,
         associated_token::authority = offer_token_authority,
-    )]
+  )]
     pub offer_buy_token_2_account: Account<'info, TokenAccount>,
 
     /// Derived PDA for token authority, does not store data.
@@ -172,7 +191,7 @@ pub struct MakeOfferTwo<'info> {
     #[account(
         seeds = [b"offer_authority", offer_id.to_le_bytes().as_ref()],
         bump
-    )]
+  )]
     pub offer_token_authority: AccountInfo<'info>,
 
     /// Boss's buy token 1 ATA, must exist prior to execution, owned by `boss`.
@@ -180,7 +199,7 @@ pub struct MakeOfferTwo<'info> {
         mut,
         associated_token::mint = buy_token_1_mint,
         associated_token::authority = boss,
-    )]
+  )]
     pub boss_buy_token_1_account: Box<Account<'info, TokenAccount>>,
 
     /// Boss's buy token 2 ATA, must exist prior to execution, owned by `boss`.
@@ -188,7 +207,7 @@ pub struct MakeOfferTwo<'info> {
         mut,
         associated_token::mint = buy_token_2_mint,
         associated_token::authority = boss,
-    )]
+  )]
     pub boss_buy_token_2_account: Box<Account<'info, TokenAccount>>,
 
     /// Mint of the sell token for the offer.
@@ -218,7 +237,8 @@ pub struct MakeOfferTwo<'info> {
 /// Creates an offer with two buy tokens.
 ///
 /// Initializes an offer where the boss provides two buy tokens in exchange for a sell token.
-/// Transfers the specified amounts of buy tokens from the boss to the offer’s accounts and logs the creation.
+/// Transfers the specified amounts of buy tokens from the boss to the offer’s accounts and emits
+/// an `OfferMadeTwo` event for traceability.
 ///
 /// # Arguments
 /// - `ctx`: Context containing the accounts for the offer.
@@ -268,21 +288,23 @@ pub fn make_offer_two(
         &ctx.accounts.offer_buy_token_2_account,
         buy_token_2_total_amount,
     )?;
-    msg!(
-        "Offer {} created by boss {}, buy_token_1: {}, buy_token_2: {}, sell_token: {}",
+
+    emit!(OfferMadeTwo {
         offer_id,
-        ctx.accounts.boss.key(),
+        boss: ctx.accounts.boss.key(),
         buy_token_1_total_amount,
         buy_token_2_total_amount,
-        sell_token_total_amount
-    );
+        sell_token_total_amount,
+    });
+
     Ok(())
 }
 
 /// Creates an offer with one buy token.
 ///
 /// Initializes an offer where the boss provides one buy token in exchange for a sell token.
-/// Transfers the specified amount of the buy token from the boss to the offer’s account and logs the creation.
+/// Transfers the specified amount of the buy token from the boss to the offer’s account and emits
+/// an `OfferMadeOne` event for traceability.
 ///
 /// # Arguments
 /// - `ctx`: Context containing the accounts for the offer.
@@ -319,13 +341,14 @@ pub fn make_offer_one(
         &ctx.accounts.offer_buy_token_1_account,
         buy_token_1_total_amount,
     )?;
-    msg!(
-        "Offer {} created by boss {}, buy_token_1: {}, sell_token: {}",
+
+    emit!(OfferMadeOne {
         offer_id,
-        ctx.accounts.boss.key(),
+        boss: ctx.accounts.boss.key(),
         buy_token_1_total_amount,
-        sell_token_total_amount
-    );
+        sell_token_total_amount,
+    });
+
     Ok(())
 }
 

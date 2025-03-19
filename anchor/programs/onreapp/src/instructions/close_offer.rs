@@ -5,6 +5,23 @@ use anchor_lang::{system_program, Accounts};
 use anchor_spl::token;
 use anchor_spl::token::{CloseAccount, Token, TokenAccount, Transfer};
 
+/// Event emitted when tokens are transferred during offer closure.
+#[event]
+pub struct TokensTransferred {
+    pub offer_id: u64,
+    pub from_account: Pubkey,
+    pub to_account: Pubkey,
+    pub amount: u64,
+}
+
+/// Event emitted when an offer is closed.
+#[event]
+pub struct OfferClosed {
+    pub offer_id: u64,
+    pub boss: Pubkey,
+    pub num_buy_tokens: u8, // 1 for CloseOfferOne, 2 for CloseOfferTwo
+}
+
 /// Account structure for closing an offer with one buy token.
 ///
 /// This struct defines the accounts required to close an offer involving a single buy token,
@@ -77,7 +94,7 @@ pub struct CloseOfferOne<'info> {
 /// Closes a single buy token offer.
 ///
 /// Transfers remaining sell and buy tokens to the boss’s accounts, closes the offer’s token accounts,
-/// and refunds the `offer` account’s rent to `boss`. Logs account closures for tracking.
+/// and refunds the `offer` account’s rent to `boss`. Emits events for token transfers and offer closure.
 ///
 /// # Errors
 /// - [`CloseOfferErrorCode::InvalidCloseOffer`] if `buy_token_mint_2 != System Program ID`.
@@ -104,6 +121,12 @@ pub fn close_offer_one(ctx: Context<CloseOfferOne>) -> Result<()> {
     ];
     let signer_seeds = &[seeds.as_ref()];
 
+    emit!(OfferClosed {
+        offer_id: ctx.accounts.offer.offer_id,
+        boss: ctx.accounts.boss.key(),
+        num_buy_tokens: 1,
+    });
+
     close_token_account(
         ctx.accounts.offer_sell_token_account.clone(),
         ctx.accounts.offer_token_authority.clone(),
@@ -111,10 +134,6 @@ pub fn close_offer_one(ctx: Context<CloseOfferOne>) -> Result<()> {
         ctx.accounts.token_program.to_account_info(),
         signer_seeds,
     )?;
-    msg!(
-        "Closed offer sell token account: {}",
-        ctx.accounts.offer_sell_token_account.key()
-    );
 
     close_token_account(
         ctx.accounts.offer_buy_1_token_account.clone(),
@@ -123,10 +142,6 @@ pub fn close_offer_one(ctx: Context<CloseOfferOne>) -> Result<()> {
         ctx.accounts.token_program.to_account_info(),
         signer_seeds,
     )?;
-    msg!(
-        "Closed offer buy token 1 account: {}",
-        ctx.accounts.offer_buy_1_token_account.key()
-    );
 
     Ok(())
 }
@@ -151,7 +166,7 @@ pub struct CloseOfferTwo<'info> {
         mut,
         associated_token::mint = offer.sell_token_mint,
         associated_token::authority = offer_token_authority,
-    )]
+  )]
     pub offer_sell_token_account: Account<'info, TokenAccount>,
 
     /// Offer's buy token 1 ATA, must exist prior to execution, controlled by `offer_token_authority`.
@@ -159,7 +174,7 @@ pub struct CloseOfferTwo<'info> {
         mut,
         associated_token::mint = offer.buy_token_mint_1,
         associated_token::authority = offer_token_authority,
-    )]
+  )]
     pub offer_buy_1_token_account: Account<'info, TokenAccount>,
 
     /// Offer's buy token 2 ATA, must exist prior to execution, controlled by `offer_token_authority`.
@@ -167,7 +182,7 @@ pub struct CloseOfferTwo<'info> {
         mut,
         associated_token::mint = offer.buy_token_mint_2,
         associated_token::authority = offer_token_authority,
-    )]
+  )]
     pub offer_buy_2_token_account: Account<'info, TokenAccount>,
 
     /// Boss's buy token 1 ATA, must exist prior to execution, owned by `boss`.
@@ -175,7 +190,7 @@ pub struct CloseOfferTwo<'info> {
         mut,
         associated_token::mint = offer.buy_token_mint_1,
         associated_token::authority = boss,
-    )]
+  )]
     pub boss_buy_1_token_account: Account<'info, TokenAccount>,
 
     /// Boss's buy token 2 ATA, must exist prior to execution, owned by `boss`.
@@ -183,7 +198,7 @@ pub struct CloseOfferTwo<'info> {
         mut,
         associated_token::mint = offer.buy_token_mint_2,
         associated_token::authority = boss,
-    )]
+  )]
     pub boss_buy_2_token_account: Account<'info, TokenAccount>,
 
     /// Boss's sell token ATA, must exist prior to execution, owned by `boss`.
@@ -191,7 +206,7 @@ pub struct CloseOfferTwo<'info> {
         mut,
         associated_token::mint = offer.sell_token_mint,
         associated_token::authority = boss,
-    )]
+  )]
     pub boss_sell_token_account: Account<'info, TokenAccount>,
 
     /// Program state, ensures `boss` is authorized.
@@ -218,7 +233,7 @@ pub struct CloseOfferTwo<'info> {
 /// Closes a dual buy token offer.
 ///
 /// Transfers remaining sell and buy tokens to the boss’s accounts, closes the offer’s token accounts,
-/// and refunds the `offer` account’s rent to `boss`. Logs account closures for tracking.
+/// and refunds the `offer` account’s rent to `boss`. Emits events for token transfers and offer closure.
 ///
 /// # Errors
 /// - [`CloseOfferErrorCode::InvalidMint`] if token account mints mismatch during transfers.
@@ -243,6 +258,11 @@ pub fn close_offer_two(ctx: Context<CloseOfferTwo>) -> Result<()> {
     ];
     let signer_seeds = &[seeds.as_ref()];
 
+    emit!(OfferClosed {
+        offer_id: ctx.accounts.offer.offer_id,
+        boss: ctx.accounts.boss.key(),
+        num_buy_tokens: 2,
+    });
     close_token_account(
         ctx.accounts.offer_sell_token_account.clone(),
         ctx.accounts.offer_token_authority.clone(),
@@ -250,10 +270,6 @@ pub fn close_offer_two(ctx: Context<CloseOfferTwo>) -> Result<()> {
         ctx.accounts.token_program.to_account_info(),
         signer_seeds,
     )?;
-    msg!(
-        "Closed offer sell token account: {}",
-        ctx.accounts.offer_sell_token_account.key()
-    );
 
     close_token_account(
         ctx.accounts.offer_buy_1_token_account.clone(),
@@ -262,10 +278,6 @@ pub fn close_offer_two(ctx: Context<CloseOfferTwo>) -> Result<()> {
         ctx.accounts.token_program.to_account_info(),
         signer_seeds,
     )?;
-    msg!(
-        "Closed offer buy token 1 account: {}",
-        ctx.accounts.offer_buy_1_token_account.key()
-    );
 
     close_token_account(
         ctx.accounts.offer_buy_2_token_account.clone(),
@@ -274,10 +286,6 @@ pub fn close_offer_two(ctx: Context<CloseOfferTwo>) -> Result<()> {
         ctx.accounts.token_program.to_account_info(),
         signer_seeds,
     )?;
-    msg!(
-        "Closed offer buy token 2 account: {}",
-        ctx.accounts.offer_buy_2_token_account.key()
-    );
 
     Ok(())
 }
@@ -313,6 +321,8 @@ impl<'info> CloseOfferContext<'info> for CloseOfferTwo<'info> {
 }
 
 /// Transfers remaining tokens from a source to a destination account if a balance exists.
+///
+/// Emits a `TokensTransferred` event when tokens are moved.
 ///
 /// # Arguments
 /// - `ctx`: Context containing program and account information.
@@ -350,14 +360,14 @@ fn transfer_remaining_tokens<'info, T: CloseOfferContext<'info> + anchor_lang::B
             signer_seeds,
         );
 
-        msg!(
-            "Transferring {} tokens from {} to {}",
-            balance,
-            from_token_account.key(),
-            to_token_account.key()
-        );
-
         token::transfer(cpi_transfer, balance)?;
+
+        emit!(TokensTransferred {
+            offer_id: ctx.accounts.offer().offer_id,
+            from_account: from_token_account.key(),
+            to_account: to_token_account.key(),
+            amount: balance,
+        });
     }
 
     Ok(())
