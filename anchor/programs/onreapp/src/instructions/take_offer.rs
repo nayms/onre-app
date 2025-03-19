@@ -31,7 +31,6 @@ pub struct OfferTakenTwo {
 ///   This includes `offer_sell_token_account`, `offer_buy_token_1_account`,
 ///   `user_sell_token_account`, and `user_buy_token_1_account`.
 #[derive(Accounts)]
-#[instruction(offer_id: u64)]
 pub struct TakeOfferOne<'info> {
     /// The offer account being taken, providing offer details.
     pub offer: Account<'info, Offer>,
@@ -191,7 +190,6 @@ pub fn take_offer_one(ctx: Context<TakeOfferOne>, sell_token_amount: u64) -> Res
 ///   This includes `offer_sell_token_account`, `offer_buy_token_1_account`, `offer_buy_token_2_account`,
 ///   `user_sell_token_account`, `user_buy_token_1_account`, and `user_buy_token_2_account`.
 #[derive(Accounts)]
-#[instruction(offer_id: u64)]
 pub struct TakeOfferTwo<'info> {
     /// The offer account being taken, providing offer details.
     pub offer: Account<'info, Offer>,
