@@ -9,7 +9,7 @@ crate-type = ["cdylib", "lib"]
 name = "onreapp"
 
 [features]
-default = ["anchor-lang/init-if-needed", "no-idl"]
+default = ["no-idl"]
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
