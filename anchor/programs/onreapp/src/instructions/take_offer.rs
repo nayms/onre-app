@@ -174,9 +174,6 @@ pub fn take_offer_one(ctx: Context<TakeOfferOne>, sell_token_amount: u64) -> Res
         buy_token_1_amount,
     });
 
-    // Optional: Log compute units for debugging
-    sol_log_compute_units();
-
     Ok(())
 }
 
@@ -365,9 +362,6 @@ pub fn take_offer_two(ctx: Context<TakeOfferTwo>, sell_token_amount: u64) -> Res
         buy_token_1_amount,
         buy_token_2_amount,
     });
-
-    // Optional: Log compute units for debugging
-    sol_log_compute_units();
 
     Ok(())
 }
