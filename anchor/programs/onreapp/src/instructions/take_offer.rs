@@ -1,6 +1,5 @@
 use crate::state::Offer;
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::log::sol_log_compute_units;
 use anchor_lang::system_program;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
