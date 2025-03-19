@@ -244,11 +244,11 @@ pub fn close_offer_two(ctx: Context<CloseOfferTwo>) -> Result<()> {
     let signer_seeds = &[seeds.as_ref()];
 
     close_token_account(
-      ctx.accounts.offer_sell_token_account.clone(),
-      ctx.accounts.offer_token_authority.clone(),
-      ctx.accounts.boss.to_account_info(),
-      ctx.accounts.token_program.to_account_info(),
-      signer_seeds,
+        ctx.accounts.offer_sell_token_account.clone(),
+        ctx.accounts.offer_token_authority.clone(),
+        ctx.accounts.boss.to_account_info(),
+        ctx.accounts.token_program.to_account_info(),
+        signer_seeds,
     )?;
     msg!(
         "Closed offer sell token account: {}",
@@ -256,11 +256,11 @@ pub fn close_offer_two(ctx: Context<CloseOfferTwo>) -> Result<()> {
     );
 
     close_token_account(
-      ctx.accounts.offer_buy_1_token_account.clone(),
-      ctx.accounts.offer_token_authority.clone(),
-      ctx.accounts.boss.to_account_info(),
-      ctx.accounts.token_program.to_account_info(),
-      signer_seeds,
+        ctx.accounts.offer_buy_1_token_account.clone(),
+        ctx.accounts.offer_token_authority.clone(),
+        ctx.accounts.boss.to_account_info(),
+        ctx.accounts.token_program.to_account_info(),
+        signer_seeds,
     )?;
     msg!(
         "Closed offer buy token 1 account: {}",
@@ -268,11 +268,11 @@ pub fn close_offer_two(ctx: Context<CloseOfferTwo>) -> Result<()> {
     );
 
     close_token_account(
-      ctx.accounts.offer_buy_2_token_account.clone(),
-      ctx.accounts.offer_token_authority.clone(),
-      ctx.accounts.boss.to_account_info(),
-      ctx.accounts.token_program.to_account_info(),
-      signer_seeds,
+        ctx.accounts.offer_buy_2_token_account.clone(),
+        ctx.accounts.offer_token_authority.clone(),
+        ctx.accounts.boss.to_account_info(),
+        ctx.accounts.token_program.to_account_info(),
+        signer_seeds,
     )?;
     msg!(
         "Closed offer buy token 2 account: {}",
