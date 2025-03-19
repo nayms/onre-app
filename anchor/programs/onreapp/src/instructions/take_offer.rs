@@ -3,6 +3,7 @@ use anchor_lang::prelude::*;
 use anchor_lang::system_program;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
+/// Event emitted when an offer with one buy token is taken.
 #[event]
 pub struct OfferTakenOne {
     pub offer_id: u64,
@@ -11,6 +12,7 @@ pub struct OfferTakenOne {
     pub buy_token_1_amount: u64,
 }
 
+/// Event emitted when an offer with two buy tokens is taken.
 #[event]
 pub struct OfferTakenTwo {
     pub offer_id: u64,
@@ -32,6 +34,10 @@ pub struct OfferTakenTwo {
 #[derive(Accounts)]
 pub struct TakeOfferOne<'info> {
     /// The offer account being taken, providing offer details.
+    /// Ensures this is a single buy token offer by checking `buy_token_mint_2`.
+    #[account(
+        constraint = offer.buy_token_mint_2 == system_program::ID @ TakeOfferErrorCode::InvalidTakeOffer
+    )]
     pub offer: Account<'info, Offer>,
 
     /// Offer's sell token ATA, receives the user’s sell tokens.
@@ -39,7 +45,7 @@ pub struct TakeOfferOne<'info> {
         mut,
         associated_token::mint = offer.sell_token_mint,
         associated_token::authority = offer_token_authority,
-  )]
+    )]
     pub offer_sell_token_account: Account<'info, TokenAccount>,
 
     /// Offer's buy token 1 ATA, sends buy tokens to the user.
@@ -47,23 +53,27 @@ pub struct TakeOfferOne<'info> {
         mut,
         associated_token::mint = offer.buy_token_mint_1,
         associated_token::authority = offer_token_authority,
-  )]
+    )]
     pub offer_buy_token_1_account: Account<'info, TokenAccount>,
 
     /// User’s sell token ATA, sends sell tokens to the offer.
+    /// Ensures mint matches the offer’s sell token mint.
     #[account(
         mut,
         associated_token::mint = offer.sell_token_mint,
         associated_token::authority = user,
-  )]
+        constraint = offer.sell_token_mint == user_sell_token_account.mint @ TakeOfferErrorCode::InvalidSellTokenMint
+    )]
     pub user_sell_token_account: Account<'info, TokenAccount>,
 
     /// User’s buy token 1 ATA, receives buy tokens from the offer.
+    /// Ensures mint matches the offer’s buy token 1 mint.
     #[account(
         mut,
         associated_token::mint = offer.buy_token_mint_1,
         associated_token::authority = user,
-  )]
+        constraint = offer.buy_token_mint_1 == user_buy_token_1_account.mint @ TakeOfferErrorCode::InvalidBuyTokenMint
+    )]
     pub user_buy_token_1_account: Account<'info, TokenAccount>,
 
     /// Derived PDA for token authority, controls offer token accounts.
@@ -90,38 +100,23 @@ pub struct TakeOfferOne<'info> {
 /// Takes an offer with one buy token.
 ///
 /// Allows a user to exchange sell tokens for one buy token from the offer, transferring
-/// tokens between accounts and emitting an event with transaction details.
+/// tokens between accounts and emitting an `OfferTakenOne` event with transaction details.
 ///
 /// # Arguments
 /// - `ctx`: Context containing the accounts for the offer take.
 /// - `sell_token_amount`: Amount of sell tokens the user provides.
 ///
 /// # Errors
-/// - [`TakeOfferErrorCode::InvalidSellTokenMint`] if the user’s sell token mint doesn’t match the offer.
-/// - [`TakeOfferErrorCode::InvalidBuyTokenMint`] if the user’s buy token mint doesn’t match the offer.
 /// - [`TakeOfferErrorCode::OfferExceedsSellLimit`] if the sell amount exceeds the offer’s limit.
-/// - [`TakeOfferErrorCode::InvalidTakeOffer`] if the offer isn’t a single buy token type.
 /// - [`TakeOfferErrorCode::InsufficientOfferBalance`] if the offer lacks sufficient buy tokens.
 /// - [`TakeOfferErrorCode::CalculationOverflow`] if amount calculations overflow.
 pub fn take_offer_one(ctx: Context<TakeOfferOne>, sell_token_amount: u64) -> Result<()> {
     let offer = &ctx.accounts.offer;
 
     require!(
-        offer.sell_token_mint == ctx.accounts.user_sell_token_account.mint,
-        TakeOfferErrorCode::InvalidSellTokenMint
-    );
-    require!(
-        offer.buy_token_mint_1 == ctx.accounts.user_buy_token_1_account.mint,
-        TakeOfferErrorCode::InvalidBuyTokenMint
-    );
-    require!(
         ctx.accounts.offer_sell_token_account.amount + sell_token_amount
             <= offer.sell_token_total_amount,
         TakeOfferErrorCode::OfferExceedsSellLimit
-    );
-    require!(
-        offer.buy_token_mint_2 == system_program::ID,
-        TakeOfferErrorCode::InvalidTakeOffer
     );
 
     let buy_token_1_amount = calculate_buy_amount(
@@ -215,22 +210,32 @@ pub struct TakeOfferTwo<'info> {
     pub offer_buy_token_2_account: Account<'info, TokenAccount>,
 
     /// User’s sell token account, sends sell tokens to the offer.
-    #[account(mut)]
+    /// Ensures mint matches the offer’s sell token mint.
+    #[account(
+        mut,
+        associated_token::mint = offer.sell_token_mint,
+        associated_token::authority = user,
+        constraint = offer.sell_token_mint == user_sell_token_account.mint @ TakeOfferErrorCode::InvalidSellTokenMint
+  )]
     pub user_sell_token_account: Account<'info, TokenAccount>,
 
     /// User’s buy token 1 ATA, receives buy token 1 from the offer.
+    /// Ensures mint matches the offer’s buy token 1 mint.
     #[account(
         mut,
         associated_token::mint = offer.buy_token_mint_1,
         associated_token::authority = user,
+        constraint = offer.buy_token_mint_1 == user_buy_token_1_account.mint @ TakeOfferErrorCode::InvalidBuyTokenMint
   )]
     pub user_buy_token_1_account: Account<'info, TokenAccount>,
 
     /// User’s buy token 2 ATA, receives buy token 2 from the offer.
+    /// Ensures mint matches the offer’s buy token 2 mint.
     #[account(
         mut,
         associated_token::mint = offer.buy_token_mint_2,
         associated_token::authority = user,
+        constraint = offer.buy_token_mint_2 == user_buy_token_2_account.mint @ TakeOfferErrorCode::InvalidBuyTokenMint
   )]
     pub user_buy_token_2_account: Account<'info, TokenAccount>,
 
@@ -258,15 +263,13 @@ pub struct TakeOfferTwo<'info> {
 /// Takes an offer with two buy tokens.
 ///
 /// Allows a user to exchange sell tokens for two buy tokens from the offer, transferring
-/// tokens between accounts and emitting an event with transaction details.
+/// tokens between accounts and emitting an `OfferTakenTwo` event with transaction details.
 ///
 /// # Arguments
 /// - `ctx`: Context containing the accounts for the offer take.
 /// - `sell_token_amount`: Amount of sell tokens the user provides.
 ///
 /// # Errors
-/// - [`TakeOfferErrorCode::InvalidSellTokenMint`] if the user’s sell token mint doesn’t match the offer.
-/// - [`TakeOfferErrorCode::InvalidBuyTokenMint`] if the user’s buy token mints don’t match the offer.
 /// - [`TakeOfferErrorCode::OfferExceedsSellLimit`] if the sell amount exceeds the offer’s limit.
 /// - [`TakeOfferErrorCode::InsufficientOfferBalance`] if the offer lacks sufficient buy tokens.
 /// - [`TakeOfferErrorCode::CalculationOverflow`] if amount calculations overflow.
@@ -274,21 +277,9 @@ pub fn take_offer_two(ctx: Context<TakeOfferTwo>, sell_token_amount: u64) -> Res
     let offer = &ctx.accounts.offer;
 
     require!(
-        offer.sell_token_mint == ctx.accounts.user_sell_token_account.mint,
-        TakeOfferErrorCode::InvalidSellTokenMint
-    );
-    require!(
-        offer.buy_token_mint_1 == ctx.accounts.user_buy_token_1_account.mint,
-        TakeOfferErrorCode::InvalidBuyTokenMint
-    );
-    require!(
         ctx.accounts.offer_sell_token_account.amount + sell_token_amount
             <= offer.sell_token_total_amount,
         TakeOfferErrorCode::OfferExceedsSellLimit
-    );
-    require!(
-        offer.buy_token_mint_2 == ctx.accounts.user_buy_token_2_account.mint,
-        TakeOfferErrorCode::InvalidBuyTokenMint
     );
 
     let buy_token_1_amount = calculate_buy_amount(

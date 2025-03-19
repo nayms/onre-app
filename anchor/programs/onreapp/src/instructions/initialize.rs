@@ -14,12 +14,12 @@ pub struct Initialize<'info> {
     /// The program state account, initialized with the boss’s public key.
     ///
     /// # Note
-    /// - Space is allocated as `8 + State::SIZE` bytes, where 8 bytes are for the discriminator.
+    /// - Space is allocated as `8 + State::INIT_SPACE` bytes, where 8 bytes are for the discriminator.
     /// - Seeded with `"state"` and a bump for PDA derivation.
     #[account(
         init,
         payer = boss,
-        space = 8 + State::SIZE,
+        space = 8 + State::INIT_SPACE,
         seeds = [b"state"],
         bump
     )]

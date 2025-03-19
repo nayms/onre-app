@@ -37,12 +37,12 @@ pub struct MakeOfferOne<'info> {
     /// The offer account to be initialized, with rent paid by `boss`.
     ///
     /// # Note
-    /// - Space is allocated as `8 + Offer::SIZE` bytes, where 8 bytes are for the discriminator.
+    /// - Space is allocated as `8 + Offer::INIT_SPACE` bytes, where 8 bytes are for the discriminator.
     /// - Seeded with `"offer"` and `offer_id` for PDA derivation.
     #[account(
         init,
         payer = boss,
-        space = 8 + Offer::SIZE,
+        space = 8 + Offer::INIT_SPACE,
         seeds = [b"offer", offer_id.to_le_bytes().as_ref()],
         bump
   )]
@@ -149,12 +149,12 @@ pub struct MakeOfferTwo<'info> {
     /// The offer account to be initialized, with rent paid by `boss`.
     ///
     /// # Note
-    /// - Space is allocated as `8 + Offer::SIZE` bytes, where 8 bytes are for the discriminator.
+    /// - Space is allocated as `8 + Offer::INIT_SPACE` bytes, where 8 bytes are for the discriminator.
     /// - Seeded with `"offer"` and `offer_id` for PDA derivation.
     #[account(
         init,
         payer = boss,
-        space = 8 + Offer::SIZE,
+        space = 8 + Offer::INIT_SPACE,
         seeds = [b"offer", offer_id.to_le_bytes().as_ref()],
         bump
   )]

@@ -1184,7 +1184,7 @@ export type OnreApp = {
             "The program state account, initialized with the boss’s public key.",
             "",
             "# Note",
-            "- Space is allocated as `8 + State::SIZE` bytes, where 8 bytes are for the discriminator.",
+            "- Space is allocated as `8 + State::INIT_SPACE` bytes, where 8 bytes are for the discriminator.",
             "- Seeded with `\"state\"` and a bump for PDA derivation."
           ],
           "writable": true,
@@ -1246,7 +1246,7 @@ export type OnreApp = {
             "The offer account to be initialized, with rent paid by `boss`.",
             "",
             "# Note",
-            "- Space is allocated as `8 + Offer::SIZE` bytes, where 8 bytes are for the discriminator.",
+            "- Space is allocated as `8 + Offer::INIT_SPACE` bytes, where 8 bytes are for the discriminator.",
             "- Seeded with `\"offer\"` and `offer_id` for PDA derivation."
           ],
           "writable": true,
@@ -1670,7 +1670,7 @@ export type OnreApp = {
             "The offer account to be initialized, with rent paid by `boss`.",
             "",
             "# Note",
-            "- Space is allocated as `8 + Offer::SIZE` bytes, where 8 bytes are for the discriminator.",
+            "- Space is allocated as `8 + Offer::INIT_SPACE` bytes, where 8 bytes are for the discriminator.",
             "- Seeded with `\"offer\"` and `offer_id` for PDA derivation."
           ],
           "writable": true,
@@ -2341,7 +2341,8 @@ export type OnreApp = {
         {
           "name": "offer",
           "docs": [
-            "The offer account being taken, providing offer details."
+            "The offer account being taken, providing offer details.",
+            "Ensures this is a single buy token offer by checking `buy_token_mint_2`."
           ]
         },
         {
@@ -2535,7 +2536,8 @@ export type OnreApp = {
         {
           "name": "userSellTokenAccount",
           "docs": [
-            "User’s sell token ATA, sends sell tokens to the offer."
+            "User’s sell token ATA, sends sell tokens to the offer.",
+            "Ensures mint matches the offer’s sell token mint."
           ],
           "writable": true,
           "pda": {
@@ -2629,7 +2631,8 @@ export type OnreApp = {
         {
           "name": "userBuyToken1Account",
           "docs": [
-            "User’s buy token 1 ATA, receives buy tokens from the offer."
+            "User’s buy token 1 ATA, receives buy tokens from the offer.",
+            "Ensures mint matches the offer’s buy token 1 mint."
           ],
           "writable": true,
           "pda": {
@@ -3098,14 +3101,103 @@ export type OnreApp = {
         {
           "name": "userSellTokenAccount",
           "docs": [
-            "User’s sell token account, sends sell tokens to the offer."
+            "User’s sell token account, sends sell tokens to the offer.",
+            "Ensures mint matches the offer’s sell token mint."
           ],
-          "writable": true
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "offer.sell_token_mint",
+                "account": "offer"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
         },
         {
           "name": "userBuyToken1Account",
           "docs": [
-            "User’s buy token 1 ATA, receives buy token 1 from the offer."
+            "User’s buy token 1 ATA, receives buy token 1 from the offer.",
+            "Ensures mint matches the offer’s buy token 1 mint."
           ],
           "writable": true,
           "pda": {
@@ -3199,7 +3291,8 @@ export type OnreApp = {
         {
           "name": "userBuyToken2Account",
           "docs": [
-            "User’s buy token 2 ATA, receives buy token 2 from the offer."
+            "User’s buy token 2 ATA, receives buy token 2 from the offer.",
+            "Ensures mint matches the offer’s buy token 2 mint."
           ],
           "writable": true,
           "pda": {
@@ -3677,6 +3770,9 @@ export type OnreApp = {
     },
     {
       "name": "offerTakenOne",
+      "docs": [
+        "Event emitted when an offer with one buy token is taken."
+      ],
       "type": {
         "kind": "struct",
         "fields": [
@@ -3701,6 +3797,9 @@ export type OnreApp = {
     },
     {
       "name": "offerTakenTwo",
+      "docs": [
+        "Event emitted when an offer with two buy tokens is taken."
+      ],
       "type": {
         "kind": "struct",
         "fields": [
