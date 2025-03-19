@@ -24,9 +24,17 @@ pub struct CloseOfferOne<'info> {
         associated_token::authority = offer_token_authority,
   )]
     pub offer_buy_1_token_account: Account<'info, TokenAccount>,
-    #[account(mut)]
+    #[account(
+        mut,
+        associated_token::mint = offer.buy_token_mint_1,
+        associated_token::authority = boss,
+    )]
     pub boss_buy_1_token_account: Account<'info, TokenAccount>,
-    #[account(mut)]
+    #[account(
+          mut,
+          associated_token::mint = offer.sell_token_mint,
+          associated_token::authority = boss,
+    )]
     pub boss_sell_token_account: Account<'info, TokenAccount>,
 
     #[account(has_one = boss)]
@@ -34,6 +42,7 @@ pub struct CloseOfferOne<'info> {
     /// CHECK: This is a derived PDA, not storing data
     #[account(seeds = [b"offer_authority", offer.offer_id.to_le_bytes().as_ref()], bump)]
     pub offer_token_authority: AccountInfo<'info>,
+    #[account(mut)]
     pub boss: Signer<'info>,
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
@@ -104,11 +113,23 @@ pub struct CloseOfferTwo<'info> {
         associated_token::authority = offer_token_authority,
   )]
     pub offer_buy_2_token_account: Account<'info, TokenAccount>,
-    #[account(mut)]
+    #[account(
+          mut,
+          associated_token::mint = offer.buy_token_mint_1,
+          associated_token::authority = boss,
+    )]
     pub boss_buy_1_token_account: Account<'info, TokenAccount>,
-    #[account(mut)]
+    #[account(
+          mut,
+          associated_token::mint = offer.buy_token_mint_2,
+          associated_token::authority = boss,
+    )]
     pub boss_buy_2_token_account: Account<'info, TokenAccount>,
-    #[account(mut)]
+    #[account(
+          mut,
+          associated_token::mint = offer.sell_token_mint,
+          associated_token::authority = boss,
+    )]
     pub boss_sell_token_account: Account<'info, TokenAccount>,
 
     #[account(has_one = boss)]
