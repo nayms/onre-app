@@ -183,6 +183,9 @@ pub fn take_offer_one(ctx: Context<TakeOfferOne>, sell_token_amount: u64) -> Res
 #[derive(Accounts)]
 pub struct TakeOfferTwo<'info> {
     /// The offer account being taken, providing offer details.
+    #[account(
+        constraint = offer.buy_token_mint_2 != system_program::ID @ TakeOfferErrorCode::InvalidTakeOffer
+    )]
     pub offer: Account<'info, Offer>,
 
     /// Offer's sell token ATA, receives the user’s sell tokens.
