@@ -11,15 +11,23 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          //       jotai: ['jotai'],
-          react: ['react', 'react-dom', 'react-router'],
-          //       reactHotToast: ['react-hot-toast'],
-          solanaWalletAdapters: [
+          react: [
+            '@tanstack/react-query',
+            'react',
+            'react-dom',
+            'react-helmet-async',
+            'react-hot-toast',
+            'react-router',
+          ],
+          solana: [
+            '@coral-xyz/anchor',
+            '@metaplex-foundation/js', // NOTE: HUUUGE, try to work around it
+            '@solana/spl-token',
             '@solana/wallet-adapter-base',
             '@solana/wallet-adapter-react',
             '@solana/wallet-adapter-react-ui',
+            '@solana/web3.js',
           ],
-          //       tanstack: ['@tanstack/react-query'],
         },
       },
     },

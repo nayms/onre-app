@@ -6,14 +6,6 @@ import type { TradePurchaseModel, TradeScheduleRedemptionModel } from '@/modules
 
 // *** MOCK DATA --- >>>
 const dataBuy: TradePurchaseModel = {
-  availableSupply: {
-    value: 1_000_000,
-    symbol: 'ONe', // ONr
-  },
-  purchasePrice: {
-    value: 1.1,
-    symbol: 'sUSDe',
-  },
   sUSDeAPY: 0.155,
   onReAPY: 0.1045,
 };

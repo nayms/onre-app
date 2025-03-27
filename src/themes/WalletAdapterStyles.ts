@@ -116,7 +116,6 @@ export const WalletAdapterStyles = withTheme(createGlobalStyle`
     width: 100%;
     border-radius: 8px;
     font-size: 14px;
-    //color: text color
 
     &:not(:disabled):hover {
       background-color: #F5F7FF;
@@ -345,6 +344,5 @@ export const WalletAdapterStyles = withTheme(createGlobalStyle`
     font-size: 18px;
     border: none;
     border-radius: 8px;
-    //color: white;
   }
 `);

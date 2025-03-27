@@ -4,8 +4,6 @@ export type Token = {
 };
 
 export type TradePurchaseModel = {
-  availableSupply: Token;
-  purchasePrice: Token;
   sUSDeAPY: number;
   onReAPY: number;
 };

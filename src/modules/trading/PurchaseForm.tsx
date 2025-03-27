@@ -3,21 +3,52 @@ import { formatNumber, formatPercent } from '@/utils/number-formatting.ts';
 import { Button, Checkbox, Label } from '@/components/Input.tsx';
 import { BalanceSummary, LinkControl, TokenAmountGroup, ValueDisplay, ValueGroup } from './Shared.tsx';
 import { TokenAmountInput } from './TokenAmountInput.tsx';
+import { useGetUserBalance, useOfferInfo } from '@/data/SolanaProvider.tsx';
 
 import type { TradePurchaseModel } from './types.ts';
 
 type PurchaseFormProps = { data: TradePurchaseModel };
 
 export const PurchaseForm: React.FC<PurchaseFormProps> = ({ data }) => {
+  const balance = useGetUserBalance();
+
   const [payAmount, setPayAmount] = useState<string>();
   const [receiveAmount, setReceiveAmount] = useState<string>();
   const [accepted, setAccepted] = useState(false);
 
-  const handleMaxPay = () => {};
+  const formattedUserBalance = balance?.data?.uiAmount == null ? '' : formatNumber(balance.data.uiAmount);
+  // console.log('balance', balance?.data /*balance?.data*/);
+  // const programAccounts = useProgramAccounts();
+  // const accounts = programAccounts.data ?? [];
+  // console.log(
+  //   'accounts:',
+  //   accounts.map(a => a.pubkey.toBase58()),
+  // );
+  // console.log(accounts.data[0].account.data);
+
+  const offerInfo = useOfferInfo() ?? {};
+  // @ts-ignore
+  const { buyToken, sellToken, price } = offerInfo;
+  console.log('offerInfo', offerInfo);
+  const buyTokenSupply = buyToken?.supply;
+  const buyTokenSymbol = buyToken?.symbol ?? '';
+  const sellTokenSymbol = sellToken?.symbol ?? '';
+  const buyTokePrice = price ?? 1;
+
+  const maxAvailableToBuy = Math.min(balance?.data?.uiAmount ?? 0, buyToken?.total);
+
+  const handleMaxPay = () => {
+    setPayAmount(`${maxAvailableToBuy}`);
+  };
   const handleMaxReceive = () => {};
 
   const handleChangePayAmount: React.ChangeEventHandler<HTMLInputElement> = e => {
     setPayAmount(e.target.value);
+    // retrieve limits for the field and for the other field
+    // - what is the max we can possibly pay
+    // - what is the max there is available to buy
+    // calculate this and other value
+    // populate the fields
   };
 
   const handleChangeReceiveAmount: React.ChangeEventHandler<HTMLInputElement> = e => {
@@ -31,7 +62,15 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ data }) => {
           label="Available Supply:"
           value={
             <>
-              <em>{formatNumber(data.availableSupply.value, 0)}</em> {data.availableSupply.symbol}
+              <em>{formatNumber(buyTokenSupply, 0)}</em> {buyTokenSymbol}
+            </>
+          }
+        />
+        <ValueDisplay
+          label="Offered Supply:"
+          value={
+            <>
+              <em>{formatNumber(500, 0)}</em> {buyTokenSymbol}
             </>
           }
         />
@@ -39,7 +78,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ data }) => {
           label="Purchase Price:"
           value={
             <>
-              <em>{formatNumber(data.purchasePrice.value, 2)}</em> {data.purchasePrice.symbol}
+              <em>{formatNumber(buyTokePrice, 2)}</em> {sellTokenSymbol}
             </>
           }
         />
@@ -53,8 +92,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ data }) => {
           label="You pay"
           value={payAmount}
           controls={<LinkControl onClick={handleMaxPay}>Max</LinkControl>}
-          symbol={data.purchasePrice.symbol}
-          summary={<BalanceSummary value={1000} />}
+          symbol={sellTokenSymbol}
+          summary={<BalanceSummary value={formattedUserBalance} />}
           onChange={handleChangePayAmount}
         />
 
@@ -62,7 +101,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ data }) => {
           label="You receive"
           value={receiveAmount}
           controls={<LinkControl onClick={handleMaxReceive}>Max</LinkControl>}
-          symbol={data.availableSupply.symbol}
+          symbol={buyTokenSymbol}
           summary={<BalanceSummary value={0} />}
           onChange={handleChangeReceiveAmount}
         />
@@ -81,7 +120,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ data }) => {
         </Label>
       </ValueGroup>
 
-      <Button>Purchase</Button>
+      <Button>!!!!Purchase!!!!</Button>
     </>
   );
 };
