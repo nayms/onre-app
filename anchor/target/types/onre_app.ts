@@ -3791,6 +3791,10 @@ export type OnreApp = {
           {
             "name": "buyToken1Amount",
             "type": "u64"
+          },
+          {
+            "name": "remainingSellTokenAmount",
+            "type": "u64"
           }
         ]
       }
@@ -3821,6 +3825,10 @@ export type OnreApp = {
           },
           {
             "name": "buyToken2Amount",
+            "type": "u64"
+          },
+          {
+            "name": "remainingSellTokenAmount",
             "type": "u64"
           }
         ]

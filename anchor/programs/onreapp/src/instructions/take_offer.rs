@@ -10,6 +10,7 @@ pub struct OfferTakenOne {
     pub user: Pubkey,
     pub sell_token_amount: u64,
     pub buy_token_1_amount: u64,
+    pub remaining_sell_token_amount: u64,
 }
 
 /// Event emitted when an offer with two buy tokens is taken.
@@ -20,6 +21,7 @@ pub struct OfferTakenTwo {
     pub sell_token_amount: u64,
     pub buy_token_1_amount: u64,
     pub buy_token_2_amount: u64,
+    pub remaining_sell_token_amount: u64,
 }
 
 /// Account structure for taking an offer with one buy token.
@@ -166,6 +168,10 @@ pub fn take_offer_one(ctx: Context<TakeOfferOne>, sell_token_amount: u64) -> Res
         user: ctx.accounts.user.key(),
         sell_token_amount,
         buy_token_1_amount,
+        remaining_sell_token_amount: offer
+            .sell_token_total_amount
+            .checked_sub(ctx.accounts.offer_sell_token_account.amount)
+            .unwrap(),
     });
 
     Ok(())
@@ -354,6 +360,10 @@ pub fn take_offer_two(ctx: Context<TakeOfferTwo>, sell_token_amount: u64) -> Res
         sell_token_amount,
         buy_token_1_amount,
         buy_token_2_amount,
+        remaining_sell_token_amount: offer
+            .sell_token_total_amount
+            .checked_sub(ctx.accounts.offer_sell_token_account.amount)
+            .unwrap(),
     });
 
     Ok(())

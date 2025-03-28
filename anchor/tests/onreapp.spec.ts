@@ -77,9 +77,9 @@ describe('onreapp', () => {
     bossBuyTokenAccount1 = await createATA(provider, initialBoss.payer, buyToken1Mint, initialBoss.publicKey);
     bossBuyTokenAccount2 = await createATA(provider, initialBoss.payer, buyToken2Mint, initialBoss.publicKey);
 
-    await mintToAddress(provider, initialBoss.payer, sellTokenMint, bossSellTokenAccount, initialBoss.publicKey, 1000e9);
-    await mintToAddress(provider, initialBoss.payer, buyToken1Mint, bossBuyTokenAccount1, initialBoss.publicKey, 1000e9);
-    await mintToAddress(provider, initialBoss.payer, buyToken2Mint, bossBuyTokenAccount2, initialBoss.publicKey, 1000e9);
+    await mintToAddress(provider, initialBoss.payer, sellTokenMint, bossSellTokenAccount, initialBoss.publicKey, 10000e9);
+    await mintToAddress(provider, initialBoss.payer, buyToken1Mint, bossBuyTokenAccount1, initialBoss.publicKey, 10000e9);
+    await mintToAddress(provider, initialBoss.payer, buyToken2Mint, bossBuyTokenAccount2, initialBoss.publicKey, 10000e9);
 
     [offerPda] = PublicKey.findProgramAddressSync([Buffer.from('offer'), offerId.toArrayLike(Buffer, 'le', 8)], program.programId);
     [statePda] = PublicKey.findProgramAddressSync([Buffer.from('state')], program.programId);
@@ -146,7 +146,7 @@ describe('onreapp', () => {
     expect(offerAccount.buyToken1TotalAmount.eq(new anchor.BN(500e9))).toBe(true);
 
     const bossBuyTokenAccountInfo = await provider.connection.getTokenAccountBalance(bossBuyTokenAccount1);
-    expect(+bossBuyTokenAccountInfo.value.amount).toEqual(500e9);
+    expect(+bossBuyTokenAccountInfo.value.amount).toEqual(9500e9);
 
     const offerBuyTokenAccountInfo = await provider.connection.getTokenAccountBalance(offerBuyToken1Pda);
     expect(+offerBuyTokenAccountInfo.value.amount).toEqual(500e9);
@@ -223,7 +223,7 @@ describe('onreapp', () => {
     const bossSellTokenAccountInfo = await provider.connection.getTokenAccountBalance(bossSellTokenAccount);
     const offerSellTokenAccountInfo = await provider.connection.getTokenAccountBalance(newOfferSellTokenPda);
     const offerBuyToken1AccountInfo = await provider.connection.getTokenAccountBalance(newOfferBuyTokenPda);
-    expect(+bossSellTokenAccountInfo.value.amount).toEqual(1000e9);
+    expect(+bossSellTokenAccountInfo.value.amount).toEqual(10000e9);
     expect(+offerSellTokenAccountInfo.value.amount).toEqual(0);
     expect(+offerBuyToken1AccountInfo.value.amount).toEqual(500e9);
   });
@@ -1064,4 +1064,156 @@ describe('onreapp', () => {
       })
       .rpc();
   });
+
+  it('Takes an offer completely with two users and fails on third attempt', async () => {
+    // Create a new offer
+    const offerId = new anchor.BN(9999);
+    const [offerAuthority] = PublicKey.findProgramAddressSync([Buffer.from('offer_authority'), offerId.toArrayLike(Buffer, 'le', 8)], program.programId);
+    const [offerPda] = PublicKey.findProgramAddressSync([Buffer.from('offer'), offerId.toArrayLike(Buffer, 'le', 8)], program.programId);
+    const offerSellTokenPda = await getAssociatedTokenAddress(sellTokenMint, offerAuthority, true);
+    const offerBuyToken1Pda = await getAssociatedTokenAddress(buyToken1Mint, offerAuthority, true);
+
+    // Create token accounts for the offer
+    const offerSellTokenAccountInstruction = createAssociatedTokenAccountInstruction(
+      initialBoss.payer.publicKey,
+      offerSellTokenPda,
+      offerAuthority,
+      sellTokenMint,
+    );
+    const offerBuyToken1AccountInstruction = createAssociatedTokenAccountInstruction(
+      initialBoss.payer.publicKey,
+      offerBuyToken1Pda,
+      offerAuthority,
+      buyToken1Mint,
+    );
+
+    // Make an offer with 100e9 buy tokens for 100e9 sell tokens
+    await program.methods
+      .makeOfferOne(offerId, new anchor.BN(100e9), new anchor.BN(100e9))
+      .accounts({ sellTokenMint, buyToken1Mint, state: statePda })
+      .preInstructions([offerSellTokenAccountInstruction, offerBuyToken1AccountInstruction])
+      .rpc();
+
+    // Verify the offer was created correctly
+    const offerAccount = await program.account.offer.fetch(offerPda);
+    expect(offerAccount.offerId.eq(offerId)).toBe(true);
+    expect(offerAccount.sellTokenMint.toBase58()).toEqual(sellTokenMint.toBase58());
+    expect(offerAccount.buyTokenMint1.toBase58()).toEqual(buyToken1Mint.toBase58());
+    expect(offerAccount.sellTokenTotalAmount.eq(new anchor.BN(100e9))).toBe(true);
+    expect(offerAccount.buyToken1TotalAmount.eq(new anchor.BN(100e9))).toBe(true);
+
+    // Create first user and have them take 60% of the offer
+    const user1 = new anchor.Wallet(Keypair.generate());
+    await airdropLamports(provider, user1.publicKey, anchor.web3.LAMPORTS_PER_SOL * 20);
+    const user1SellTokenAccount = await createATA(provider, user1.payer, sellTokenMint, user1.publicKey);
+    await mintToAddress(provider, initialBoss.payer, sellTokenMint, user1SellTokenAccount, initialBoss.publicKey, 100e9);
+
+    const createUser1BuyToken1AccountInstruction = createAssociatedTokenAccountInstruction(
+      user1.payer.publicKey,
+      getAssociatedTokenAddressSync(buyToken1Mint, user1.publicKey, true),
+      user1.publicKey,
+      buyToken1Mint,
+    );
+    const takeOfferInstruction1 = await program.methods
+      .takeOfferOne(new anchor.BN(60e9))
+      .accountsPartial({
+        offer: offerPda,
+        offerSellTokenAccount: offerSellTokenPda,
+        offerBuyToken1Account: offerBuyToken1Pda,
+        userSellTokenAccount: user1SellTokenAccount,
+        userBuyToken1Account: getAssociatedTokenAddressSync(buyToken1Mint, user1.publicKey, true),
+        offerTokenAuthority: offerAuthority,
+        user: user1.publicKey,
+      })
+      .instruction();
+
+    await createAndSendTransaction(provider, user1, [createUser1BuyToken1AccountInstruction, takeOfferInstruction1]);
+
+    // Verify token balances after first user takes 60% of the offer
+    const offerSellTokenInfo1 = await provider.connection.getTokenAccountBalance(offerSellTokenPda);
+    const offerBuyToken1Info1 = await provider.connection.getTokenAccountBalance(offerBuyToken1Pda);
+    expect(+offerSellTokenInfo1.value.amount).toEqual(60e9);
+    expect(+offerBuyToken1Info1.value.amount).toEqual(40e9);
+
+    // Create second user and have them take the remaining 40% of the offer
+    const user2 = new anchor.Wallet(Keypair.generate());
+    await airdropLamports(provider, user2.publicKey, anchor.web3.LAMPORTS_PER_SOL * 20);
+    const user2SellTokenAccount = await createATA(provider, user2.payer, sellTokenMint, user2.publicKey);
+    await mintToAddress(provider, initialBoss.payer, sellTokenMint, user2SellTokenAccount, initialBoss.publicKey, 100e9);
+
+    const createUser2BuyToken1AccountInstruction = createAssociatedTokenAccountInstruction(
+      user2.payer.publicKey,
+      getAssociatedTokenAddressSync(buyToken1Mint, user2.publicKey, true),
+      user2.publicKey,
+      buyToken1Mint,
+    );
+    const takeOfferInstruction2 = await program.methods
+      .takeOfferOne(new anchor.BN(40e9))
+      .accountsPartial({
+        offer: offerPda,
+        offerSellTokenAccount: offerSellTokenPda,
+        offerBuyToken1Account: offerBuyToken1Pda,
+        userSellTokenAccount: user2SellTokenAccount,
+        userBuyToken1Account: getAssociatedTokenAddressSync(buyToken1Mint, user2.publicKey, true),
+        offerTokenAuthority: offerAuthority,
+        user: user2.publicKey,
+      })
+      .instruction();
+
+    await createAndSendTransaction(provider, user2, [createUser2BuyToken1AccountInstruction, takeOfferInstruction2]);
+
+    // Verify token balances after second user takes the remaining 40% of the offer
+    const offerSellTokenInfo2 = await provider.connection.getTokenAccountBalance(offerSellTokenPda);
+    const offerBuyToken1Info2 = await provider.connection.getTokenAccountBalance(offerBuyToken1Pda);
+    expect(+offerSellTokenInfo2.value.amount).toEqual(100e9); // Offer is now fully consumed
+    expect(+offerBuyToken1Info2.value.amount).toEqual(0);     // All buy tokens have been distributed
+
+    // Create third user and have them try to take from the fully consumed offer
+    const user3 = new anchor.Wallet(Keypair.generate());
+    await airdropLamports(provider, user3.publicKey, anchor.web3.LAMPORTS_PER_SOL * 20);
+    const user3SellTokenAccount = await createATA(provider, user3.payer, sellTokenMint, user3.publicKey);
+    await mintToAddress(provider, initialBoss.payer, sellTokenMint, user3SellTokenAccount, initialBoss.publicKey, 100e9);
+
+    const createUser3BuyToken1AccountInstruction = createAssociatedTokenAccountInstruction(
+      user3.payer.publicKey,
+      getAssociatedTokenAddressSync(buyToken1Mint, user3.publicKey, true),
+      user3.publicKey,
+      buyToken1Mint,
+    );
+    const takeOfferInstruction3 = await program.methods
+      .takeOfferOne(new anchor.BN(10e9))
+      .accountsPartial({
+        offer: offerPda,
+        offerSellTokenAccount: offerSellTokenPda,
+        offerBuyToken1Account: offerBuyToken1Pda,
+        userSellTokenAccount: user3SellTokenAccount,
+        userBuyToken1Account: getAssociatedTokenAddressSync(buyToken1Mint, user3.publicKey, true),
+        offerTokenAuthority: offerAuthority,
+        user: user3.publicKey,
+      })
+      .instruction();
+
+    // This transaction should fail because the offer is fully consumed
+    const tx = new VersionedTransaction(
+      new TransactionMessage({
+        payerKey: user3.publicKey,
+        recentBlockhash: (await provider.connection.getLatestBlockhash()).blockhash,
+        instructions: [createUser3BuyToken1AccountInstruction, takeOfferInstruction3],
+      }).compileToLegacyMessage(),
+    );
+    const versionedTransaction = await user3.signTransaction(tx);
+    const signedTransactionBytes = versionedTransaction.serialize();
+
+    // Expect the transaction to fail with an error about insufficient funds
+    await expect(provider.connection.sendRawTransaction(signedTransactionBytes)).rejects.toThrow();
+
+    // Clean up - close the offer
+    await program.methods
+      .closeOfferOne()
+      .accounts({
+        offer: offerPda,
+        state: statePda,
+      })
+      .rpc();
+  }, 10000);
 });
