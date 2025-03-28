@@ -3603,6 +3603,11 @@ export type OnreApp = {
       "code": 6005,
       "name": "calculationOverflow",
       "msg": "Calculation overflowed or invalid."
+    },
+    {
+      "code": 6006,
+      "name": "zeroBuyTokenAmount",
+      "msg": "Zero buy token amount."
     }
   ],
   "types": [
@@ -3791,6 +3796,10 @@ export type OnreApp = {
           {
             "name": "buyToken1Amount",
             "type": "u64"
+          },
+          {
+            "name": "remainingSellTokenAmount",
+            "type": "u64"
           }
         ]
       }
@@ -3821,6 +3830,10 @@ export type OnreApp = {
           },
           {
             "name": "buyToken2Amount",
+            "type": "u64"
+          },
+          {
+            "name": "remainingSellTokenAmount",
             "type": "u64"
           }
         ]
