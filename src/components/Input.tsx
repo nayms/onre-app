@@ -136,6 +136,10 @@ export const Button = styled.button`
   width: 100%;
   color: white;
   background-color: #1b37f2;
+  will-change: background-color, color;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 
   &:not(:disabled) {
     &:focus {

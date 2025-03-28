@@ -10,7 +10,8 @@ type WhitelistNotStartedResponse = {
   pubKey: string;
   status: 'NOT_STARTED';
   data: {
-    url: string;
+    urlKyc: string;
+    urlKyb: string;
   };
 };
 type WhitelistUnusedResponse = {
@@ -28,10 +29,11 @@ type SessionContextType =
     }
   | {
       state: 'not-started';
-      redirectTo: string;
+      urlKyc: string;
+      urlKyb: string;
     }
   | {
-      state: 'ready';
+      state: 'approved';
     }
   | { state: 'error' };
 
@@ -56,11 +58,12 @@ export const SessionProvider: React.FC<React.PropsWithChildren> = ({ children })
         if (response.status === 'NOT_STARTED')
           setContextValue({
             state: 'not-started',
-            redirectTo: response.data.url,
+            urlKyc: response.data.urlKyc,
+            urlKyb: response.data.urlKyb,
           });
         else if (response.status === 'APPROVED')
           setContextValue({
-            state: 'ready',
+            state: 'approved',
           });
       })
 

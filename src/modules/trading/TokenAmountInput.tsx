@@ -35,7 +35,7 @@ const InputLine = styled.label`
   gap: 8px;
 `;
 
-const Input = styled.input`
+const Input = styled.input<{ $invalid?: boolean }>`
   font-family: ${props => props.theme.font.family};
   font-size: 28px;
   font-weight: 500;
@@ -44,7 +44,7 @@ const Input = styled.input`
   width: 100%;
 
   border: none;
-  color: #949ca9;
+  color: ${props => (props.$invalid ? props.theme.palette.red['600'] : '#949ca9')};
   background: transparent;
 
   &:focus {
@@ -73,6 +73,8 @@ type TokenAmountProps = {
   summary?: React.ReactNode;
   value?: string | number;
   className?: string;
+  disabled?: boolean;
+  invalid?: boolean;
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
 };
 
@@ -83,6 +85,8 @@ export const TokenAmountInput: React.FC<TokenAmountProps> = ({
   symbol,
   summary,
   value,
+  disabled,
+  invalid,
   onChange,
 }) => (
   <InputContainer className={className}>
@@ -92,7 +96,7 @@ export const TokenAmountInput: React.FC<TokenAmountProps> = ({
     </SuperLine>
 
     <InputLine>
-      <Input placeholder="0" value={value} onChange={onChange} />
+      <Input $invalid={invalid} placeholder="0" value={value} onChange={onChange} disabled={disabled} />
       {symbol && <Symbol>{symbol}</Symbol>}
     </InputLine>
 

@@ -1,6 +1,7 @@
 import React, { HTMLAttributes } from 'react';
 import styled, { css } from 'styled-components';
 import { Column, Row } from '@/components/Layout.tsx';
+import { formatNumber } from '@/utils/number-formatting.ts';
 
 const TextColumn = styled(Column)`
   color: #5c6175;
@@ -56,6 +57,17 @@ export const ValueDisplay: React.FC<ValueDisplayProps> = ({ label, value }) => (
   </ValueRow>
 );
 
+export const FormatAmount: React.FC<{
+  value: string | number | null;
+  symbol: string;
+  maxDecimals?: number;
+  minDecimals?: number;
+}> = ({ value, symbol, maxDecimals, minDecimals }) => (
+  <>
+    <em>{formatNumber(value, maxDecimals, minDecimals)}</em> {symbol}
+  </>
+);
+
 export const TokenAmountGroup = styled.div`
   display: flex;
   flex-direction: column;
@@ -88,11 +100,18 @@ const Summary = styled.div`
 
   color: #5c6175;
   font-weight: 400;
+
   em {
     font-style: normal;
     font-weight: 400;
     color: #1a1c23;
   }
+`;
+
+export const ErrorSummary = styled(Summary)`
+  color: ${props => props.theme.palette.red['600']};
+  margin-left: 0;
+  margin-right: auto;
 `;
 
 type BalanceSummaryProps = { value?: string | number };
