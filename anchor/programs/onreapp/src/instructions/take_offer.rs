@@ -116,7 +116,7 @@ pub fn take_offer_one(ctx: Context<TakeOfferOne>, sell_token_amount: u64) -> Res
     let offer = &ctx.accounts.offer;
 
     require!(
-        ctx.accounts.offer_sell_token_account.amount + sell_token_amount
+        ctx.accounts.offer_sell_token_account.amount.checked_add(sell_token_amount).unwrap()
             <= offer.sell_token_total_amount,
         TakeOfferErrorCode::OfferExceedsSellLimit
     );
@@ -286,7 +286,7 @@ pub fn take_offer_two(ctx: Context<TakeOfferTwo>, sell_token_amount: u64) -> Res
     let offer = &ctx.accounts.offer;
 
     require!(
-        ctx.accounts.offer_sell_token_account.amount + sell_token_amount
+        ctx.accounts.offer_sell_token_account.amount.checked_add(sell_token_amount).unwrap()
             <= offer.sell_token_total_amount,
         TakeOfferErrorCode::OfferExceedsSellLimit
     );
