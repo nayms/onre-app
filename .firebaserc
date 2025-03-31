@@ -1,0 +1,15 @@
+{
+    "projects": {
+        "default": "devapp-onre-finance",
+        "devapp-onre-finance": "devapp-onre-finance"
+    },
+    "targets": {
+        "devapp-onre-finance": {
+            "hosting": {
+                "devapp-onre-finance": [
+                    "devapp-onre-finance"
+                ]
+            }
+        }
+    }
+}
