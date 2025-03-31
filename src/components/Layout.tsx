@@ -4,7 +4,7 @@ export const Row = styled.div`
   position: relative;
   display: flex;
   flex-direction: row;
-  gap: ${({ theme: { spacing } }) => spacing.horizontal};
+  gap: ${({ theme: { spacing } }) => spacing.large};
   width: 100%;
   padding: 0;
 `;
