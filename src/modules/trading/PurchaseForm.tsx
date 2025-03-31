@@ -13,7 +13,7 @@ import {
 } from './Shared.tsx';
 import { TokenAmountInput } from './TokenAmountInput.tsx';
 import { useSessionContext } from '@/data/SessionProvider.tsx';
-import { useGetUserBalance, useOfferInfo, useSolanaProgramContext } from '@/data/SolanaProvider.tsx';
+import { useGetUserBalance, useSolanaProgramContext } from '@/data/SolanaProvider.tsx';
 import { LoadingDots } from '@/components/LoadingDots.tsx';
 
 import type { TradePurchaseModel } from './types.ts';
@@ -50,10 +50,7 @@ type PurchaseFormProps = { data: TradePurchaseModel };
 export const PurchaseForm: React.FC<PurchaseFormProps> = ({ data }) => {
   const sessionContext = useSessionContext();
   const balance = useGetUserBalance();
-  const offerInfo = useOfferInfo();
-  const { executePurchase, purchaseTransactionState } = useSolanaProgramContext();
-
-  // console.log('offerInfo', offerInfo);
+  const { offerInfo, executePurchase, purchaseTransactionState } = useSolanaProgramContext();
 
   const [payAmount, setPayAmount] = useState<InputState>({ value: '' });
   const [receiveAmount, setReceiveAmount] = useState<InputState>({ value: '' });
@@ -153,7 +150,14 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ data }) => {
       {isKycRequired && (
         <Banner>
           To make a purchase, you need to complete the KYC check. Choose to proceed as a{' '}
-          <a href={sessionContext.urlKyb}>company</a> or an <a href={sessionContext.urlKyb}>individual</a>.
+          <a href={sessionContext.urlKyb} target="_blank">
+            company
+          </a>{' '}
+          or an{' '}
+          <a href={sessionContext.urlKyc} target="_blank">
+            individual
+          </a>
+          .
         </Banner>
       )}
       <ValueGroup>

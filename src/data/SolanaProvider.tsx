@@ -43,7 +43,8 @@ type SolanaProgramContentMethods = {
   purchaseTransactionState: TransactionState;
 };
 
-type SolanaProgramContextType = SolanaProgramContextState & SolanaProgramContentMethods;
+type SolanaProgramContextType = SolanaProgramContextState
+  & SolanaProgramContentMethods & { offerInfo: OfferInfoStateType };
 
 type TransactionState =
   | { status: 'idle' }
@@ -65,24 +66,81 @@ export const SolanaProgramProvider: React.FC<React.PropsWithChildren> = ({ child
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
   const { publicKey: userPublicKey, sendTransaction } = useWallet();
-  const [contextValue, setContextValue] = useState<SolanaProgramContextState>(getInitialProgramContextState());
+  const [programContextState, setProgramContextState] = useState<SolanaProgramContextState>(
+    getInitialProgramContextState(),
+  );
+  const [offerInfoState, setOfferInfoState] = useState<OfferInfoStateType>({ state: 'initial' });
 
   const [transactionState, setTransactionState] = useState<TransactionState>({ status: 'idle' });
 
   useEffect(() => {
     if (wallet == null) {
-      setContextValue(getInitialProgramContextState());
+      setProgramContextState(getInitialProgramContextState());
       return;
     }
 
     const program = getOnReAppProgramInfo(connection, wallet);
     const { offerPda, offerAuthority } = getCurrentOffer(program);
 
-    setContextValue({ state: 'ready', program, offerPda, offerAuthority });
+    setProgramContextState({ state: 'ready', program, offerPda, offerAuthority });
   }, [wallet, connection]);
 
+  const updateOfferInfo = () => {
+    const { program, offerPda, offerAuthority } = programContextState;
+
+    if (!(program && offerPda)) {
+      setOfferInfoState({ state: 'initial' });
+      return;
+    }
+    setOfferInfoState({ state: 'loading' });
+
+    program.account.offer
+      .fetch(offerPda)
+
+      .then(offerAccount => {
+        const { buyTokenMint1, sellTokenMint } = offerAccount;
+        const metaplex = Metaplex.make(connection);
+
+        return Promise.all([
+          offerAccount,
+          connection.getParsedAccountInfo(buyTokenMint1),
+          connection.getParsedAccountInfo(sellTokenMint),
+          metaplex.nfts().findByMint({ mintAddress: buyTokenMint1 }),
+          metaplex.nfts().findByMint({ mintAddress: sellTokenMint }),
+          getAssociatedTokenAddress(buyTokenMint1, offerAuthority, true).then(offerBuyToken1Pda =>
+            connection.getTokenAccountBalance(offerBuyToken1Pda),
+          ),
+        ]);
+      })
+
+      .then(([offerAccount, buyTokenInfo, sellTokenInfo, buyTokenMeta, sellTokenMeta, offerBuyTokenAccountInfo]) => {
+        const { buyToken1TotalAmount, sellTokenTotalAmount } = offerAccount;
+        const buyTokenInfoValue =
+          isParsedAccountData(buyTokenInfo?.value?.data) ? buyTokenInfo?.value?.data : undefined;
+
+        const sellTokenInfoValue =
+          isParsedAccountData(sellTokenInfo?.value?.data) ? sellTokenInfo?.value?.data : undefined;
+
+        setOfferInfoState({
+          state: 'valid',
+          buyToken: toTokenInfo(
+            buyTokenInfoValue,
+            buyTokenMeta,
+            buyToken1TotalAmount,
+            new BN(offerBuyTokenAccountInfo.value.amount),
+          ) as Required<TokenInfo>,
+          sellToken: toTokenInfo(sellTokenInfoValue, sellTokenMeta, sellTokenTotalAmount),
+          price: buyToken1TotalAmount.div(sellTokenTotalAmount).toNumber(),
+        });
+      });
+  };
+
+  useEffect(() => {
+    updateOfferInfo();
+  }, [programContextState.program, programContextState.offerPda]);
+
   const executePurchase = (amount: number) => {
-    const { program, offerPda } = contextValue;
+    const { program, offerPda } = programContextState;
 
     if (!(program && offerPda && userPublicKey)) return;
 
@@ -149,13 +207,15 @@ export const SolanaProgramProvider: React.FC<React.PropsWithChildren> = ({ child
       .catch(() => {
         setTransactionState({ status: 'error' });
         setTimeout(() => setTransactionState({ status: 'idle' }), 100);
-      });
+      })
+      .finally(() => updateOfferInfo());
   };
 
   return (
     <SolanaProgramContext.Provider
       value={{
-        ...contextValue,
+        ...programContextState,
+        offerInfo: offerInfoState,
         executePurchase,
         purchaseTransactionState: transactionState,
       }}
@@ -246,61 +306,6 @@ type OfferInfoStateType =
       sellToken: TokenInfo;
       price: number;
     };
-export const useOfferInfo = () => {
-  const { connection } = useConnection();
-  const { program, offerPda, offerAuthority } = useSolanaProgramContext();
-  const [offerInfoState, setOfferInfoState] = useState<OfferInfoStateType>({ state: 'initial' });
-
-  useEffect(() => {
-    if (!(program && offerPda)) {
-      setOfferInfoState({ state: 'initial' });
-      return;
-    }
-    setOfferInfoState({ state: 'loading' });
-
-    program.account.offer
-      .fetch(offerPda)
-
-      .then(offerAccount => {
-        const { buyTokenMint1, sellTokenMint } = offerAccount;
-        const metaplex = Metaplex.make(connection);
-
-        return Promise.all([
-          offerAccount,
-          connection.getParsedAccountInfo(buyTokenMint1),
-          connection.getParsedAccountInfo(sellTokenMint),
-          metaplex.nfts().findByMint({ mintAddress: buyTokenMint1 }),
-          metaplex.nfts().findByMint({ mintAddress: sellTokenMint }),
-          getAssociatedTokenAddress(buyTokenMint1, offerAuthority, true).then(offerBuyToken1Pda =>
-            connection.getTokenAccountBalance(offerBuyToken1Pda),
-          ),
-        ]);
-      })
-
-      .then(([offerAccount, buyTokenInfo, sellTokenInfo, buyTokenMeta, sellTokenMeta, offerBuyTokenAccountInfo]) => {
-        const { buyToken1TotalAmount, sellTokenTotalAmount } = offerAccount;
-        const buyTokenInfoValue =
-          isParsedAccountData(buyTokenInfo?.value?.data) ? buyTokenInfo?.value?.data : undefined;
-
-        const sellTokenInfoValue =
-          isParsedAccountData(sellTokenInfo?.value?.data) ? sellTokenInfo?.value?.data : undefined;
-
-        setOfferInfoState({
-          state: 'valid',
-          buyToken: toTokenInfo(
-            buyTokenInfoValue,
-            buyTokenMeta,
-            buyToken1TotalAmount,
-            new BN(offerBuyTokenAccountInfo.value.amount),
-          ) as Required<TokenInfo>,
-          sellToken: toTokenInfo(sellTokenInfoValue, sellTokenMeta, sellTokenTotalAmount),
-          price: buyToken1TotalAmount.div(sellTokenTotalAmount).toNumber(),
-        });
-      });
-  }, [program, offerPda]);
-
-  return offerInfoState;
-};
 
 export const SolanaProvider: React.FC<React.PropsWithChildren> = ({ children }) => (
   <ConnectionProvider endpoint={env.solanaRpcUrl}>
