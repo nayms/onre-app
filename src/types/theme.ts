@@ -30,7 +30,7 @@ export type ButtonColorKey = 'color' | 'active' | 'text';
 
 export type BorderRadiusKey = 'small' | 'medium' | 'large';
 
-export type SizeMetricKeys = 'horizontal' | 'vertical';
+export type SizeMetricKeys = 'small' | 'medium' | 'large';
 
 export type Theme = {
   variant: ThemeVariant;
@@ -68,6 +68,4 @@ export type Theme = {
   radius: Record<BorderRadiusKey, string>;
 
   spacing: Record<SizeMetricKeys, string>;
-
-  padding: Record<SizeMetricKeys, string>;
 };

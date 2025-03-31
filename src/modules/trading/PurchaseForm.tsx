@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { ChangeEventHandler, useEffect, useState } from 'react';
+import styled from 'styled-components';
 import { formatNumber, formatPercent } from '@/utils/number-formatting.ts';
 import { Button, Checkbox, Label } from '@/components/Input.tsx';
 import {
@@ -13,9 +14,31 @@ import {
 import { TokenAmountInput } from './TokenAmountInput.tsx';
 import { useSessionContext } from '@/data/SessionProvider.tsx';
 import { useGetUserBalance, useOfferInfo, useSolanaProgramContext } from '@/data/SolanaProvider.tsx';
+import { LoadingDots } from '@/components/LoadingDots.tsx';
 
 import type { TradePurchaseModel } from './types.ts';
-import { LoadingDots } from '@/components/LoadingDots.tsx';
+import toast from 'react-hot-toast';
+
+const Banner = styled.div`
+  background-color: ${({ theme }) => theme.color.text.control};
+  color: ${({ theme }) => theme.color.background};
+  padding: ${({ theme }) => theme.spacing.small};
+  border-radius: ${({ theme }) => theme.spacing.small};
+  margin-bottom: ${({ theme }) => theme.spacing.small};
+  a {
+    color: ${({ theme }) => theme.color.background};
+    text-decoration: underline;
+  }
+`;
+
+const validateAmount = (amount: number): string | undefined =>
+  isNaN(amount) || amount < 0 ? 'Invalid value' : undefined;
+
+const validateMaxAmount = (
+  amount: number,
+  maxAmount: number,
+  errorMessage = 'Value is greater than the maximum',
+): string | undefined => (amount > maxAmount ? errorMessage : undefined);
 
 type InputState = {
   value: string;
@@ -38,6 +61,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ data }) => {
 
   // Derived
   const isUserWhitelisted = sessionContext.state === 'approved';
+  const isKycRequired = sessionContext.state === 'not-started';
+
   const userBalance = balance?.data?.uiAmount == null ? 0 : balance.data.uiAmount;
 
   const isOfferValid = offerInfo.state === 'valid';
@@ -48,60 +73,64 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ data }) => {
   const buyTokenPrice = isOfferValid ? offerInfo.price : 1;
   const offeredSupply = isOfferValid ? offerInfo.buyToken.total : 0;
   const totalAvailable = isOfferValid ? offerInfo.buyToken.totalAvailable : 0;
-  const maxAvailableToBuy = Math.min(userBalance, totalAvailable);
+
+  const maxAvailableToBuy = Math.min(userBalance / buyTokenPrice, totalAvailable);
 
   const validAmounts = !(payAmount.error || receiveAmount.error) && parseFloat(payAmount.value) > 0;
 
-  const changePayAmount = (value: string) => {
-    const amount = Number(value);
-    if (isNaN(amount) || amount < 0) {
-      setPayAmount({ value, error: 'Invalid value' });
-      return;
-    }
+  type ChangeAmountsType = (arg: {
+    payAmount: number;
+    payValue?: string;
+    receiveAmount: number;
+    receiveValue?: string;
+  }) => void;
 
-    if (amount < 0 || amount / buyTokenPrice > totalAvailable) {
-      setPayAmount({ value, error: 'Value is greater than the amount available' });
-      // pomeri na donje poje
-      return;
-    }
+  const changeAmounts: ChangeAmountsType = ({ payAmount, payValue, receiveAmount, receiveValue }) => {
+    const payError =
+      validateAmount(payAmount)
+      || validateMaxAmount(payAmount, userBalance, 'Value is greater than the balance available');
 
-    if (amount < 0 || amount > userBalance) {
-      setPayAmount({ value, error: 'Value is greater than the balance available' });
-      return;
-    }
-    // TODO: other corner cases
+    const receiveError =
+      validateAmount(receiveAmount)
+      || validateMaxAmount(receiveAmount, totalAvailable, 'Value is greater than the amount available');
 
-    const amountToReceive = amount / buyTokenPrice;
-    setReceiveAmount({ value: formatNumber(amountToReceive, 4) });
-    setPayAmount({ value });
-  };
-
-  const changeReceiveAmount = (value: string) => {
-    const amount = Number(value);
-    if (isNaN(amount) || amount < 0) {
-      setReceiveAmount({ value, error: 'Invalid value' });
-      return;
-    }
-
-    if (amount < 0 || amount > maxAvailableToBuy) {
-      setReceiveAmount({ value, error: 'Value is greater than the amount available' });
-      return;
-    }
-    // TODO: other corner cases
-
-    const amountToBuy = amount * buyTokenPrice;
-    setPayAmount({ value: formatNumber(amountToBuy, 4) });
-    setReceiveAmount({ value });
+    setPayAmount(({ value }) => ({
+      value: payValue ?? (isNaN(payAmount) ? value : formatNumber(payAmount, 8).replaceAll(/,/g, '')),
+      error: payError,
+    }));
+    setReceiveAmount(({ value }) => ({
+      value: receiveValue ?? (isNaN(receiveAmount) ? value : formatNumber(receiveAmount, 8).replaceAll(/,/g, '')),
+      error: receiveError,
+    }));
   };
 
   const handleMaxPay = () => {
-    changePayAmount(`${maxAvailableToBuy}`);
+    if (!isUserWhitelisted) return;
+
+    const receiveAmount = Math.min(maxAvailableToBuy, userBalance / buyTokenPrice);
+    const payAmount = receiveAmount * buyTokenPrice;
+    changeAmounts({
+      payAmount,
+      receiveAmount,
+    });
   };
 
-  const handleChangePayAmount: React.ChangeEventHandler<HTMLInputElement> = e => changePayAmount(e.target.value);
+  const handleChangeAmount =
+    (side: 'pay' | 'receive'): ChangeEventHandler<HTMLInputElement> =>
+    e => {
+      const { value } = e.target;
+      const amount = Number(value);
 
-  const handleChangeReceiveAmount: React.ChangeEventHandler<HTMLInputElement> = e =>
-    changeReceiveAmount(e.target.value);
+      if (side === 'pay') {
+        changeAmounts({
+          payValue: value,
+          payAmount: amount,
+          receiveAmount: amount * buyTokenPrice,
+        });
+      } else {
+        changeAmounts({ receiveValue: value, payAmount: amount / buyTokenPrice, receiveAmount: amount });
+      }
+    };
 
   const handlePurchase = () => {
     if (payAmount.error) return;
@@ -109,18 +138,24 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ data }) => {
   };
 
   useEffect(() => {
-    console.log('purchaseTransactionState', purchaseTransactionState);
+    if (purchaseTransactionState.status === 'preparing') {
+      toast(`Executing purchase transaction...`);
+    } else if (purchaseTransactionState.status === 'done') {
+      toast.success(`Purchase transaction successful!`);
+    } else if (purchaseTransactionState.status === 'error') {
+      toast.error(`Purchase failed!`);
+    }
   }, [purchaseTransactionState]);
 
   const canPurchase = isUserWhitelisted && validAmounts && acceptedTerms;
-
-  console.log({ canPurchase, isUserWhitelisted, purchaseTransactionState });
   return (
     <>
-      <ValueGroup style={{ background: '#ccf' }}>
-        In order to purchase, you need to complete the kyc the links: <a href="">for individuals</a> or{' '}
-        <a href="">for businesses</a>.
-      </ValueGroup>
+      {isKycRequired && (
+        <Banner>
+          To make a purchase, you need to complete the KYC check. Choose to proceed as a{' '}
+          <a href={sessionContext.urlKyb}>company</a> or an <a href={sessionContext.urlKyb}>individual</a>.
+        </Banner>
+      )}
       <ValueGroup>
         <ValueDisplay
           label="Available Supply:"
@@ -151,7 +186,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ data }) => {
         <TokenAmountInput
           label="You pay"
           value={payAmount.value}
-          controls={<LinkControl onClick={handleMaxPay}>Max</LinkControl>}
+          controls={isUserWhitelisted && <LinkControl onClick={handleMaxPay}>Max</LinkControl>}
           symbol={sellTokenSymbol}
           summary={
             <>
@@ -161,23 +196,17 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ data }) => {
           }
           invalid={!!payAmount.error}
           disabled={!isUserWhitelisted}
-          onChange={handleChangePayAmount}
+          onChange={handleChangeAmount('pay')}
         />
 
         <TokenAmountInput
           label="You receive"
           value={receiveAmount.value}
           symbol={buyTokenSymbol}
-          summary={
-            <>
-              <ErrorSummary>{receiveAmount.error}</ErrorSummary>
-
-              {/*<BalanceSummary value={0} />*/}
-            </>
-          }
+          summary={<ErrorSummary>{receiveAmount.error}</ErrorSummary>}
           invalid={!!receiveAmount.error}
           disabled={!isUserWhitelisted}
-          onChange={handleChangeReceiveAmount}
+          onChange={handleChangeAmount('receive')}
         />
       </TokenAmountGroup>
 

@@ -76,12 +76,8 @@ export const lightTheme: Theme = {
   },
 
   spacing: {
-    horizontal: '24px',
-    vertical: '16px',
-  },
-
-  padding: {
-    vertical: '8px',
-    horizontal: '16px',
+    small: '8px',
+    medium: '16px',
+    large: '24px',
   },
 };

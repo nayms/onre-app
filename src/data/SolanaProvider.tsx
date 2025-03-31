@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { AnchorProvider, BN, Program } from '@coral-xyz/anchor';
+import { BN } from '@coral-xyz/anchor';
 import { useQuery } from '@tanstack/react-query';
 import { WalletError } from '@solana/wallet-adapter-base';
 import {
@@ -12,17 +12,15 @@ import {
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { type ParsedAccountData, PublicKey, type TokenAmount, Transaction } from '@solana/web3.js';
 import { env } from '@/utils/constants.ts';
-import { Buffer } from 'buffer';
 import {
   createAssociatedTokenAccountInstruction,
   getAssociatedTokenAddress,
   getAssociatedTokenAddressSync,
 } from '@solana/spl-token';
+
 import { type Metadata, Metaplex } from '@metaplex-foundation/js';
 
-// Types and IDL from Solana program
-import { OnreApp } from '../../anchor/target/types/onre_app';
-import idl from '../../anchor/target/idl/onre_app.json';
+import { getCurrentOffer, getOnReAppProgramInfo, type OnReAppProgram } from './utils/SolanaProgram';
 
 export { WalletMultiButton as WalletButton } from '@solana/wallet-adapter-react-ui';
 
@@ -35,7 +33,7 @@ type SolanaProgramContextState =
     }
   | {
       state: 'ready';
-      program: Program<OnreApp>;
+      program: OnReAppProgram;
       offerPda: PublicKey;
       offerAuthority: PublicKey;
     };
@@ -48,18 +46,11 @@ type SolanaProgramContentMethods = {
 type SolanaProgramContextType = SolanaProgramContextState & SolanaProgramContentMethods;
 
 type TransactionState =
-  | {
-      status: 'idle';
-    }
-  | {
-      status: 'preparing';
-    }
-  | {
-      status: 'executing';
-    }
-  | {
-      status: 'done';
-    };
+  | { status: 'idle' }
+  | { status: 'preparing' }
+  | { status: 'executing' }
+  | { status: 'done' }
+  | { status: 'error' };
 
 const getInitialProgramContextState = (): SolanaProgramContextState => ({
   state: 'initial',
@@ -84,15 +75,8 @@ export const SolanaProgramProvider: React.FC<React.PropsWithChildren> = ({ child
       return;
     }
 
-    idl.address = env.solanaProgramId; // Override because: reasons (will explain later)
-    const program: Program<OnreApp> = new Program(idl as OnreApp, new AnchorProvider(connection, wallet));
-
-    const offerIdN = new BN(env.solanaOfferId);
-    const bOffer = Buffer.from('offer');
-    const bOfferId = offerIdN.toArrayLike(Buffer, 'le', 8);
-    const [offerPda] = PublicKey.findProgramAddressSync([bOffer, bOfferId], program.programId);
-    const bOfferAuthority = Buffer.from('offer_authority');
-    const [offerAuthority] = PublicKey.findProgramAddressSync([bOfferAuthority, bOfferId], program.programId);
+    const program = getOnReAppProgramInfo(connection, wallet);
+    const { offerPda, offerAuthority } = getCurrentOffer(program);
 
     setContextValue({ state: 'ready', program, offerPda, offerAuthority });
   }, [wallet, connection]);
@@ -160,6 +144,10 @@ export const SolanaProgramProvider: React.FC<React.PropsWithChildren> = ({ child
       })
       .then(() => {
         setTransactionState({ status: 'done' });
+        setTimeout(() => setTransactionState({ status: 'idle' }), 100);
+      })
+      .catch(() => {
+        setTransactionState({ status: 'error' });
         setTimeout(() => setTransactionState({ status: 'idle' }), 100);
       });
   };

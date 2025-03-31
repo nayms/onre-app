@@ -13,6 +13,7 @@ export const env = {
   solanaOfferId: parseInt(`${import.meta.env.VITE_SOLANA_OFFER_ID}`),
 };
 
+// TODO: Replace the simple checks with something more robust, like Zod
 console.assert(env.apiBaseUrl.toLowerCase().startsWith('https://'), 'ENV: API_URL invalid!');
 console.assert(env.solanaRpcUrl.toLowerCase().startsWith('https://'), 'ENV: SOLANA_RPC_URL invalid!');
 console.assert(env.solanaProgramId.length > 40, 'ENV: SOLANA_PROGRAM_ID invalid!');

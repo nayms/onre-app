@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { Outlet } from 'react-router';
 import { Navbar } from '@/components/Navbar.tsx';
 import { Footer } from '@/components/Footer.tsx';
+import { Toaster } from 'react-hot-toast';
 
 const LayoutContainer = styled.div`
   position: relative;
@@ -53,6 +54,7 @@ const FooterContainer = styled.div`
 export const MainLayout: React.FC = () => (
   <LayoutContainer>
     <Background />
+    <Toaster position="top-center" reverseOrder={false} />
 
     <NavbarContainer>
       <Navbar />
