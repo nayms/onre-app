@@ -3597,6 +3597,11 @@
       "code": 6005,
       "name": "CalculationOverflow",
       "msg": "Calculation overflowed or invalid."
+    },
+    {
+      "code": 6006,
+      "name": "ZeroBuyTokenAmount",
+      "msg": "Zero buy token amount."
     }
   ],
   "types": [
@@ -3785,6 +3790,10 @@
           {
             "name": "buy_token_1_amount",
             "type": "u64"
+          },
+          {
+            "name": "remaining_sell_token_amount",
+            "type": "u64"
           }
         ]
       }
@@ -3815,6 +3824,10 @@
           },
           {
             "name": "buy_token_2_amount",
+            "type": "u64"
+          },
+          {
+            "name": "remaining_sell_token_amount",
             "type": "u64"
           }
         ]
