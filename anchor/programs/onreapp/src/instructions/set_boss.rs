@@ -60,7 +60,7 @@ pub struct SetBoss<'info> {
 /// A `Result` indicating success or failure.
 pub fn set_boss(ctx: Context<SetBoss>, new_boss: Pubkey) -> Result<()> {
     require!(
-        new_boss != system_program::ID,
+        new_boss != Pubkey::default(),
         SetBossErrorCode::InvalidBossAddress
     );
 
